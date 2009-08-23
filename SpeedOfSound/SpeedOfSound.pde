@@ -37,7 +37,7 @@ void setup()
   
   minim = new Minim(this);
 
-  song = minim.loadFile("marcus_kellis_theme.mp3", 2048);
+  song = minim.loadFile("garbage_bin_fight.mp3", 2048);
   song.play();
   System.out.println(song.sampleRate());
 
