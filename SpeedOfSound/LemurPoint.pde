@@ -39,6 +39,12 @@ class LemurPoint
     int lpSize = currentSize;
     if (detected()) {
       lpSize = 32;
+      if (x < 635) {
+       x = x + 5;
+      } else {
+       x = 10;
+      }
+      
     }
     ellipse(x, y, lpSize, lpSize);
     currentSize = (int) constrain(lpSize * 0.95, 10, 32);

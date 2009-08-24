@@ -24,22 +24,22 @@ import ddf.minim.*;
 import ddf.minim.analysis.*;
 
 Minim minim;
-AudioPlayer song;
+AudioInput song;
 BeatDetect beat;
 BeatListener bl;
+Integer a;
 
 LemurPoint[] points = new LemurPoint[10];
 
 void setup()
 {
-  size(512, 200);
+  size(640, 480);
   smooth();
   
   minim = new Minim(this);
 
-  song = minim.loadFile("garbage_bin_fight.mp3", 2048);
-  song.play();
-  System.out.println(song.sampleRate());
+  song = minim.getLineIn(Minim.STEREO, 512);
+  // song.play();
 
   // a beat detection object that is FREQ_ENERGY mode that 
   // expects buffers the length of song's buffer size
@@ -62,7 +62,8 @@ void setup()
 
   // Create LemurPoint objects
   for (int i = 0; i < 10; i++) {
-    points[i] = new LemurPoint(beat, i*10, i*10);
+    a = i + 1;
+    points[i] = new LemurPoint(beat, a*40, a*15);
     points[i].setBand(i*2, i*2 + 3, 2);
   }    
 }
