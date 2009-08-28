@@ -1,9 +1,9 @@
 class BeatListener implements AudioListener
 {
   private BeatDetect beat;
-  private AudioInput source;
+  private AudioSource source;
   
-  BeatListener(BeatDetect beat, AudioInput source)
+  BeatListener(BeatDetect beat, AudioSource source)
   {
     this.source = source;
     this.source.addListener(this);

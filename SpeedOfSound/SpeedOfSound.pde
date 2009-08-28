@@ -23,10 +23,14 @@
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
+import oscP5.*;
+
 Minim minim;
-AudioInput song;
+AudioSource song;
 BeatDetect beat;
 BeatListener bl;
+OSCConnection osc;
+PointArtist artist;
 Integer a;
 
 LemurPoint[] points = new LemurPoint[10];
@@ -34,9 +38,11 @@ LemurPoint[] points = new LemurPoint[10];
 void setup()
 {
   size(640, 480);
+  frameRate(25);
   smooth();
   
   minim = new Minim(this);
+  osc = new OSCConnection(this,"192.168.0.2",12001);
 
   song = minim.getLineIn(Minim.STEREO, 512);
   // song.play();
@@ -60,12 +66,15 @@ void setup()
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
 
+  artist = new PointArtist();
   // Create LemurPoint objects
   for (int i = 0; i < 10; i++) {
     a = i + 1;
-    points[i] = new LemurPoint(beat, a*40, a*15);
+    points[i] = new LemurPoint(beat, a*40, a*15, i);
     points[i].setBand(i*2, i*2 + 3, 2);
   }    
+  osc.connectToPoints(points);
+  
 }
 
 void draw()
@@ -73,9 +82,7 @@ void draw()
   background(0);
   fill(255);
 
-  for (int i = 0; i < 10; i++) {
-    points[i].drawPoint();
-  }
+  artist.update(points);
   beat.drawGraph(this);
 
 }
@@ -88,4 +95,30 @@ void stop()
   minim.stop();
   // this closes the sketch
   super.stop();
+}
+
+void keyPressed() {
+  OscMessage m;
+  switch(key) {
+    case('c'):
+      /* connect to the broadcaster */
+      m = new OscMessage("/server/connect",new Object[0]);
+      osc.oscP5.flush(m,osc.oscDestination);  
+      break;
+    case('d'):
+      /* disconnect from the broadcaster */
+      m = new OscMessage("/server/disconnect",new Object[0]);
+      osc.oscP5.flush(m,osc.oscDestination);  
+      break;
+    case('p'):
+      /* send points to OSC */
+      osc.sendPointsToOSC(points);  
+
+  }  
+}
+
+
+/* incoming osc message are forwarded to the oscEvent method. */
+void oscEvent(OscMessage theOscMessage) {
+    osc.handleMessage(theOscMessage);
 }
