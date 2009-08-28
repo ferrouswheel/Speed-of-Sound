@@ -37,12 +37,13 @@ LemurPoint[] points = new LemurPoint[10];
 
 void setup()
 {
-  size(640, 480);
+  //size(640, 480);
+  size(800, 600);
   frameRate(25);
   smooth();
   
   minim = new Minim(this);
-  osc = new OSCConnection(this,"192.168.0.2",12001);
+  osc = new OSCConnection(this,"192.168.0.2",8000);
 
   song = minim.getLineIn(Minim.STEREO, 512);
   // song.play();
@@ -84,6 +85,10 @@ void draw()
 
   artist.update(points);
   beat.drawGraph(this);
+  /* comment out this line to turn off syncing the lemur points,
+   * (you could still manually sync the lemur points with "p")
+   */
+  osc.sendPointsToOSC(points);  
 
 }
 
@@ -113,6 +118,7 @@ void keyPressed() {
     case('p'):
       /* send points to OSC */
       osc.sendPointsToOSC(points);  
+      break;
 
   }  
 }

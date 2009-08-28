@@ -27,19 +27,25 @@ class OSCConnection {
          * move the points around (but lemur physics should be turned off)
          */
 
+        // Base path
+        String pointPath = new String("/points/");// + p.index + "/");
+        // send x,y coordinates
+        OscMessage xOscMessage = new OscMessage(pointPath + "x");
+        OscMessage yOscMessage = new OscMessage(pointPath + "y");
+        float[] xs = new float[points.length];
+        float[] ys = new float[points.length];
         //for (LemurPoint p : points) {
         for (int i = 0; i < points.length; i++) {
             LemurPoint p = points[i];
-            // Base path
-            String pointPath = new String("/point" + p.index + "/");
-            // send x,y coordinates
-            OscMessage myOscMessage = new OscMessage(pointPath + "xy");
-            int[] xy = {p.x, p.y};
-            /* add a value (an integer) to the OscMessage */
-            myOscMessage.add(xy);
-            /* send the OscMessage to a remote location specified in myNetAddress */
-            oscP5.send(myOscMessage, oscDestination);
+            xs[i] = (float) p.x / width;
+            ys[i] = 1.0 - (float) p.y / height;
         }
+        /* add a value to the OscMessage */
+        xOscMessage.add(xs);
+        yOscMessage.add(ys);
+        /* send the OscMessage to a remote location */
+        oscP5.send(xOscMessage, oscDestination);
+        oscP5.send(yOscMessage, oscDestination);
     }
 
     void connectToPoints(LemurPoint[] points) {

@@ -1,5 +1,10 @@
 class PointArtist {
 
+    int jumpDistance = 5;
+    int beatSize = 64;
+    int minSize = 10;
+    float fadeProportion = 0.95;
+
     PointArtist() {
     }
 
@@ -13,15 +18,16 @@ class PointArtist {
         if (!lp.active) return; // do nothing is not being used
         int lpSize = lp.currentSize;
         if (lp.detected()) {
-           lpSize = 32;
-          /*if (x < 635) {
-           x = x + 5;
-          } else {
-           x = 10;
-          }*/
+            lpSize = beatSize;
+
+            if (lp.x < width - jumpDistance) {
+                lp.x = lp.x + jumpDistance;
+            } else {
+                lp.x = jumpDistance;
+            }
         }
         ellipse(lp.x, lp.y, lpSize, lpSize);
-        lp.currentSize = (int) constrain(lpSize * 0.95, 10, 32);
+        lp.currentSize = (int) constrain(lpSize * fadeProportion, minSize, beatSize);
     }
 
 }
