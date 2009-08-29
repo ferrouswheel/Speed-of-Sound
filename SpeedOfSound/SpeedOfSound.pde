@@ -21,11 +21,16 @@
  */
 
 import processing.video.*;
+import processing.opengl.*;
+
+import javax.media.opengl.*;
 
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
 import oscP5.*;
+
+GL gl;
 
 Minim minim;
 AudioSource song;
@@ -49,20 +54,26 @@ PointArtist pArtist;
 
 // OverlayArtist takes the scene as it's currently drawn and then modifies it
 // some how... examples could be motion blur, water ripples etc.
-OverlayArtist oArtist;
+OverlayArtist[] oArtists;
 
 LemurPoint[] points = new LemurPoint[10];
 Movie sosMovie;
 
 void setup()
 {
-  //size(640, 480);
-  size(800, 600);
+  // We use OpenGL because it's the fastest, but it does break thinks that
+  // try to interact with the drawing buffer via the the pixel array
+  // (because swapping the data from the video card to memory is relatively
+  // slow).
+  size(800, 600, OPENGL);
+  // Processing seems to force 2x smooth if it's not explicitly disabled
+  hint(DISABLE_OPENGL_2X_SMOOTH);
+  hint(ENABLE_OPENGL_4X_SMOOTH);
   // Fullscreen
   //size(screen.width, screen.height);
   frameRate(60);
   smooth();
-  
+
   minim = new Minim(this);
   osc = new OSCConnection(this,"192.168.0.2",8000);
 
@@ -108,7 +119,12 @@ void setup()
 
   pArtist = new ImagePointArtist("yinYang.gif"); // createPointArtist("CirclePointArtist");
   pMotion = null; //new PointMotion(); //null; //PointMotionFactory.createMotion(NoMotion);
-  oArtist = createOverlayArtist("None");
+
+  oArtists = new OverlayArtist[2];
+  oArtists[0] = createOverlayArtist("WaveformOverlayArtist");
+  oArtists[0].init(song);
+  oArtists[1] = createOverlayArtist("BlurOverlayArtist");
+  oArtists[1].init(new Double(0.93));
 
   // Create LemurPoint objects
   int a = 0;
@@ -135,10 +151,14 @@ void draw()
     }
     if (pArtist != null) pArtist.paint(points);
     //beat.drawGraph(this);
-    if (oArtist != null) oArtist.paint();
+    for (int i = 0; i < oArtists.length; i++) {
+      oArtists[i].paint();
+    }
 
     // Display framerate
     text(frameRate, 35, 25);
+
+
 }
 
 void stop()
