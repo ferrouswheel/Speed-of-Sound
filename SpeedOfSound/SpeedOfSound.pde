@@ -20,6 +20,8 @@
  * This sketch plays an entire song so it may be a little slow to load.
  */
 
+import processing.video.*;
+
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
@@ -49,9 +51,8 @@ PointArtist pArtist;
 // some how... examples could be motion blur, water ripples etc.
 OverlayArtist oArtist;
 
-Integer a;
-
 LemurPoint[] points = new LemurPoint[10];
+Movie sosMovie;
 
 void setup()
 {
@@ -59,14 +60,14 @@ void setup()
   size(800, 600);
   // Fullscreen
   //size(screen.width, screen.height);
-  frameRate(25);
+  frameRate(60);
   smooth();
   
   minim = new Minim(this);
   osc = new OSCConnection(this,"192.168.0.2",8000);
 
   song = minim.getLineIn(Minim.STEREO, 512);
-  // song.play();
+  // song.play(); // needed if the song is from an mp3 file
 
   // a beat detection object that is FREQ_ENERGY mode that 
   // expects buffers the length of song's buffer size
@@ -87,12 +88,30 @@ void setup()
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
 
-  bgArtist = createBackgroundArtist("BackgroundArtist");
-  pArtist = new PointArtist(); // createPointArtist("CirclePointArtist");
-  pMotion = new PointMotion(); //null; //PointMotionFactory.createMotion(NoMotion);
+  // TODO ensure all artists are created via the factory methods (e.g.
+  // createBackgroundArtist() )
+
+  // bgArtist = createBackgroundArtist("BlankBackgroundArtist");
+  // color c = #550000;
+  // bgArtist.init(new Integer(c));
+
+  // Load a movie for the background movie artist
+  // TODO: it's current set up to read 125 frames and animate them... except it
+  // doesn't work, it just displays a single frame.
+  // It's trivial to play a movie directly, but it's really slow using the
+  // Quicktime based Processing video library.
+  sosMovie = new Movie(this, "station.mov");
+  sosMovie.loop();
+  bgArtist = createBackgroundArtist("MovieBackgroundArtist");
+  bgArtist.init(sosMovie);
+  //sosMovie.stop();
+
+  pArtist = new ImagePointArtist("yinYang.gif"); // createPointArtist("CirclePointArtist");
+  pMotion = null; //new PointMotion(); //null; //PointMotionFactory.createMotion(NoMotion);
   oArtist = createOverlayArtist("None");
 
   // Create LemurPoint objects
+  int a = 0;
   for (int i = 0; i < 10; i++) {
     a = i + 1;
     points[i] = new LemurPoint(beat, a*40, a*15, i);
@@ -116,8 +135,10 @@ void draw()
     }
     if (pArtist != null) pArtist.paint(points);
     //beat.drawGraph(this);
-    if (oArtist != null) oArtist.paint(get());
+    if (oArtist != null) oArtist.paint();
 
+    // Display framerate
+    text(frameRate, 35, 25);
 }
 
 void stop()
@@ -133,6 +154,7 @@ void stop()
 void keyPressed() {
   OscMessage m;
   switch(key) {
+      // connect/disconnect don't mean anything... can be ignored.
     case('c'):
       /* connect to the broadcaster */
       m = new OscMessage("/server/connect",new Object[0]);
@@ -146,6 +168,17 @@ void keyPressed() {
     case('p'):
       /* send points to OSC */
       osc.sendPointsToOSC(points);  
+      break;
+    case('q'):
+      /* change point artist */
+      pArtist = new PointArtist();
+      break;
+    case('m'):
+      /* jump to a random place in the movie if it's being used as a background */
+      sosMovie.jump(random(sosMovie.duration()));
+      //sosMovie.play();
+      //((MovieBackgroundArtist)bgArtist).init(sosMovie);
+      //sosMovie.stop();
       break;
 
   }  
