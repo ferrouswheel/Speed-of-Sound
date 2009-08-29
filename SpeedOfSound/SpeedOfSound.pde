@@ -57,7 +57,9 @@ PointArtist pArtist;
 // some how... examples could be motion blur, water ripples etc.
 OverlayArtist[] oArtists;
 
-LemurPoint[] points = new LemurPoint[10];
+int numPointSets = 14;
+int currentPreset = 0;
+LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
 //JMCMovieGL sosMovie;
 Movie sosMovie;
 
@@ -131,12 +133,15 @@ void setup()
 
   // Create LemurPoint objects
   int a = 0;
-  for (int i = 0; i < 10; i++) {
-    a = i + 1;
-    points[i] = new LemurPoint(beat, a*40, a*15, i);
-    points[i].setBand(i*2, i*2 + 3, 2);
+  for (int j = 0; j < numPointSets; j++) {
+    pointSets[j] = new LemurPoint[10];
+    for (int i = 0; i < 10; i++) {
+      a = i + 1;
+      pointSets[j][i] = new LemurPoint(beat, a*40, a*15, i);
+      pointSets[j][i].setBand(i*2, i*2 + 3, 2);
+    }
   }    
-  osc.connectToPoints(points);
+  osc.connectToPoints(pointSets[currentPreset]);
   
 }
 
@@ -146,13 +151,13 @@ void draw()
     fill(255);
 
     if (pMotion != null) {
-	pMotion.move(points);
+	pMotion.move(pointSets[currentPreset]);
 	/* comment out this line to turn off syncing the lemur points,
 	 * (you could still manually sync the lemur points with "p")
 	 */
-	osc.sendPointsToOSC(points);  
+	osc.sendPointsToOSC(pointSets[currentPreset]);  
     }
-    if (pArtist != null) pArtist.paint(points);
+    if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
     //beat.drawGraph(this);
     for (int i = 0; i < oArtists.length; i++) {
       oArtists[i].paint();
@@ -188,7 +193,7 @@ void keyPressed() {
       break;
     case('p'):
       /* send points to OSC */
-      osc.sendPointsToOSC(points);  
+      osc.sendPointsToOSC(pointSets[currentPreset]);  
       break;
     case('q'):
       /* change point artist */
@@ -201,7 +206,11 @@ void keyPressed() {
       ((MovieBackgroundArtist)bgArtist).init(sosMovie);
       //sosMovie.stop();
       break;
-
+    case('n'):
+      currentPreset +=1;
+      if (currentPreset >= numPointSets) currentPreset = 0;
+      osc.connectToPoints(pointSets[currentPreset]);
+      break;
   }  
 }
 

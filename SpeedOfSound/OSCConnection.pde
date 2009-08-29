@@ -50,6 +50,7 @@ class OSCConnection {
 
     void connectToPoints(LemurPoint[] points) {
         this.points = points;
+        osc.sendPointsToOSC(points);  
     }
 
     void updateX(int i, float x) {
@@ -63,24 +64,31 @@ class OSCConnection {
             points[i].y = (int) ( (1.0 - y) * height);
         }
     }
+    
+    void changePreset(int p) {
+      if (p >= 0 && p < numPointSets) {
+        currentPreset = p;
+        connectToPoints(pointSets[currentPreset]);
+      }
+    }
 
     void handleMessage(OscMessage theOscMessage) {
         String path = theOscMessage.addrPattern();
         /* get and print the address pattern and the typetag of the received OscMessage */
         println("SOS received an osc message with addrpattern "+path+" and typetag "+theOscMessage.typetag());
         theOscMessage.print();
-        if (path.substring(1,7).equals("points")) {
+        String elements[] = path.split("/");
+        println(elements);
+        if (elements[1].equals("points")) {
             //int pIndex = Integer.parseInt(path.substring(6,path.indexOf("/",6)));
-            String property = path.substring(path.indexOf("/",7)+1);
-            println("property = " + property);
-            if (property.equals("x")) {
+            if (elements[2].equals("x")) {
                 int pointCount = theOscMessage.typetag().length();
                 println("points = " + pointCount);
                 for (int i = 0; i < pointCount; i++) {
                     float x = theOscMessage.get(i).floatValue();
                     updateX(i,x);
                 }
-            } else if (property.equals("y")) {
+            } else if (elements[2].equals("y")) {
                 int pointCount = theOscMessage.typetag().length();
                 println("points = " + pointCount);
                 for (int i = 0; i < pointCount; i++) {
@@ -88,6 +96,17 @@ class OSCConnection {
                     updateY(i,y);
                 }
             }
+        } else if (elements[1].equals("PointsPreset") &&
+                   elements[2].equals("x")) {
+            int presetCount = theOscMessage.typetag().length();
+            int pIndex = 0;
+            for (int i = 0; i < presetCount; i++) {
+                float x = theOscMessage.get(i).floatValue();
+                if (x == 1.0) {
+                  pIndex = i; break;
+                }
+            }
+            changePreset(pIndex);
         }
     }
 
