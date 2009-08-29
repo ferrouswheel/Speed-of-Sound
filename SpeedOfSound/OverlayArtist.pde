@@ -95,6 +95,7 @@ class WaveformOverlayArtist extends OverlayArtist {
       int centrey = height / 2;
       angle += .11/PI;
       if (angle > 2.0 * PI) angle = 0.0;
+      pushMatrix();
       translate(centrex, centrey);
       rotate(angle);
       translate(-centrex, -centrey);
@@ -105,6 +106,7 @@ class WaveformOverlayArtist extends OverlayArtist {
         line(x1, hoffset + 50 + out.left.get(i)*50, x2, hoffset + 50 + out.left.get(i+1)*50);
         line(x1, hoffset + 150 + out.right.get(i)*50, x2, hoffset + 150 + out.right.get(i+1)*50);
       }
+      popMatrix();
     
     }  
   

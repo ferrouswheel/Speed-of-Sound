@@ -20,7 +20,7 @@
  * This sketch plays an entire song so it may be a little slow to load.
  */
 
-import jmcvideo.*;
+//import jmcvideo.*;
 import processing.video.*;
 import processing.opengl.*;
 
@@ -58,7 +58,8 @@ PointArtist pArtist;
 OverlayArtist[] oArtists;
 
 LemurPoint[] points = new LemurPoint[10];
-JMCMovieGL sosMovie;
+//JMCMovieGL sosMovie;
+Movie sosMovie;
 
 void setup()
 {
@@ -112,8 +113,8 @@ void setup()
   // doesn't work, it just displays a single frame.
   // It's trivial to play a movie directly, but it's really slow using the
   // Quicktime based Processing video library.
-  // sosMovie = new Movie(this, "tempete.mov");
-  sosMovie = movieFromDataPath("station.mov");
+  sosMovie = new Movie(this, "station.mov");
+  //sosMovie = movieFromDataPath("station.mov"); // JMC
   sosMovie.loop();
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
   bgArtist.init(sosMovie);
@@ -126,7 +127,7 @@ void setup()
   oArtists[0] = createOverlayArtist("WaveformOverlayArtist");
   oArtists[0].init(song);
   oArtists[1] = createOverlayArtist("BlurOverlayArtist");
-  oArtists[1].init(new Double(0.93));
+  oArtists[1].init(new Double(0.50));
 
   // Create LemurPoint objects
   int a = 0;
@@ -158,7 +159,7 @@ void draw()
     }
 
     // Display framerate
-    text(frameRate, 115, 125);
+    text(frameRate, width-45, height-25);
 }
 
 void stop()
@@ -195,9 +196,9 @@ void keyPressed() {
       break;
     case('m'):
       /* jump to a random place in the movie if it's being used as a background */
-      //sosMovie.jump(random(sosMovie.duration()));
-      //sosMovie.play();
-      //((MovieBackgroundArtist)bgArtist).init(sosMovie);
+      sosMovie.jump(random(sosMovie.duration()));
+      //sosMovie.loop();
+      ((MovieBackgroundArtist)bgArtist).init(sosMovie);
       //sosMovie.stop();
       break;
 
@@ -211,7 +212,7 @@ void oscEvent(OscMessage theOscMessage) {
 }
 
 
-
+/*
 JMCMovieGL movieFromDataPath(String filename)
 {
   return new JMCMovieGL(this, filename, RGB);
@@ -236,4 +237,4 @@ JMCMovieGL movieFromURL(String urlname)
   } 
 
   return new JMCMovieGL(this, url, RGB);
-}
+}*/
