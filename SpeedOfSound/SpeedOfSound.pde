@@ -30,7 +30,25 @@ AudioSource song;
 BeatDetect beat;
 BeatListener bl;
 OSCConnection osc;
-PointArtist artist;
+
+// These things draw the scene... all of them can be beat responsive...
+
+// The BackgroundArtist is called first, it optionally clears the canvas and
+// then sets the background... blank/movie frame/image/whatever.
+BackgroundArtist bgArtist;
+
+// PointMotion is used to set the point locations, after it updates, it will
+// also update the lemur points via OSC (think the Simian mobile disco vid where
+// the circles were moving in response to the beat).
+PointMotion pMotion;
+
+// PointArtist draws some kind of image based on where the points currently are
+PointArtist pArtist;
+
+// OverlayArtist takes the scene as it's currently drawn and then modifies it
+// some how... examples could be motion blur, water ripples etc.
+OverlayArtist oArtist;
+
 Integer a;
 
 LemurPoint[] points = new LemurPoint[10];
@@ -39,6 +57,8 @@ void setup()
 {
   //size(640, 480);
   size(800, 600);
+  // Fullscreen
+  //size(screen.width, screen.height);
   frameRate(25);
   smooth();
   
@@ -67,7 +87,11 @@ void setup()
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
 
-  artist = new PointArtist();
+  bgArtist = createBackgroundArtist("BackgroundArtist");
+  pArtist = new PointArtist(); // createPointArtist("CirclePointArtist");
+  pMotion = new PointMotion(); //null; //PointMotionFactory.createMotion(NoMotion);
+  oArtist = createOverlayArtist("None");
+
   // Create LemurPoint objects
   for (int i = 0; i < 10; i++) {
     a = i + 1;
@@ -80,15 +104,19 @@ void setup()
 
 void draw()
 {
-  background(0);
-  fill(255);
+    bgArtist.paint();
+    fill(255);
 
-  artist.update(points);
-  beat.drawGraph(this);
-  /* comment out this line to turn off syncing the lemur points,
-   * (you could still manually sync the lemur points with "p")
-   */
-  osc.sendPointsToOSC(points);  
+    if (pMotion != null) {
+	pMotion.move(points);
+	/* comment out this line to turn off syncing the lemur points,
+	 * (you could still manually sync the lemur points with "p")
+	 */
+	osc.sendPointsToOSC(points);  
+    }
+    if (pArtist != null) pArtist.paint(points);
+    //beat.drawGraph(this);
+    if (oArtist != null) oArtist.paint(get());
 
 }
 
