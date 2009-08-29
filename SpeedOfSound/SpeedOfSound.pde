@@ -20,6 +20,7 @@
  * This sketch plays an entire song so it may be a little slow to load.
  */
 
+import jmcvideo.*;
 import processing.video.*;
 import processing.opengl.*;
 
@@ -57,7 +58,7 @@ PointArtist pArtist;
 OverlayArtist[] oArtists;
 
 LemurPoint[] points = new LemurPoint[10];
-Movie sosMovie;
+JMCMovieGL sosMovie;
 
 void setup()
 {
@@ -111,11 +112,12 @@ void setup()
   // doesn't work, it just displays a single frame.
   // It's trivial to play a movie directly, but it's really slow using the
   // Quicktime based Processing video library.
-  sosMovie = new Movie(this, "station.mov");
+  // sosMovie = new Movie(this, "tempete.mov");
+  sosMovie = movieFromDataPath("station.mov");
   sosMovie.loop();
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
   bgArtist.init(sosMovie);
-  //sosMovie.stop();
+//  sosMovie.stop();
 
   pArtist = new ImagePointArtist("yinYang.gif"); // createPointArtist("CirclePointArtist");
   pMotion = null; //new PointMotion(); //null; //PointMotionFactory.createMotion(NoMotion);
@@ -156,9 +158,7 @@ void draw()
     }
 
     // Display framerate
-    text(frameRate, 35, 25);
-
-
+    text(frameRate, 115, 125);
 }
 
 void stop()
@@ -195,7 +195,7 @@ void keyPressed() {
       break;
     case('m'):
       /* jump to a random place in the movie if it's being used as a background */
-      sosMovie.jump(random(sosMovie.duration()));
+      //sosMovie.jump(random(sosMovie.duration()));
       //sosMovie.play();
       //((MovieBackgroundArtist)bgArtist).init(sosMovie);
       //sosMovie.stop();
@@ -208,4 +208,32 @@ void keyPressed() {
 /* incoming osc message are forwarded to the oscEvent method. */
 void oscEvent(OscMessage theOscMessage) {
     osc.handleMessage(theOscMessage);
+}
+
+
+
+JMCMovieGL movieFromDataPath(String filename)
+{
+  return new JMCMovieGL(this, filename, RGB);
+}
+
+JMCMovieGL movieFromFile(String filename)
+{
+  return new JMCMovieGL(this, new File(filename), RGB);
+}
+
+JMCMovieGL movieFromURL(String urlname)
+{
+  URL url = null;
+
+  try
+  {
+    url = new URL(urlname);
+  }
+  catch(Exception e)
+  {
+    println("URL error...");
+  } 
+
+  return new JMCMovieGL(this, url, RGB);
 }
