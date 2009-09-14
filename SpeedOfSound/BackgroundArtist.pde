@@ -26,8 +26,8 @@ class MovieBackgroundArtist extends BackgroundArtist {
     int maxFrames = 25; // 25 fps * 5 seconds
     int totalFrames; // less than max if not enough in movie.
     int pvw, pvh;
-    //JMCMovieGL m;
-    Movie m;
+    JMCMovieGL m;
+    // Movie m;
 
     MovieBackgroundArtist() {
 	currentFrame = 0;
@@ -36,8 +36,8 @@ class MovieBackgroundArtist extends BackgroundArtist {
     }
 
     void init(Object o) {
-	//m = (JMCMovieGL) o;
-	m = (Movie) o;
+  m = (JMCMovieGL) o;
+  // m = (Movie) o;
 	// Read a series of frames into a image array (running video real time
 	// is sloooow.
 	int counter = 0;
@@ -52,17 +52,16 @@ class MovieBackgroundArtist extends BackgroundArtist {
     }
 
     void paint() {
-        //background(0);
-        //PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
+        PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
 
-        //GL gl = pgl.beginGL();  
-        //{
-
-          //m.image(gl, 0, 0, width, height);
-        //}
-        //pgl.endGL();
-        if (m.available()) m.read();
-        image(m, 0, 0, width, height);
+        pgl.beginGL();  
+        {
+          m.image(gl, 0, 0, width, height);
+        }
+        pgl.endGL();
+        
+        // if (m.available()) m.read();
+        // image(m, 0, 0, width, height);
     }
 
 }

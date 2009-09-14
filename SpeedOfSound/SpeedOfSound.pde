@@ -5,26 +5,14 @@
  * Adapted from example:
  * Frequency Energy 
  * by Damien Di Fede.
- *  
- * This sketch demonstrates how to use the BeatDetect object in FREQ_ENERGY mode.
- * You can use <code>isKick</code>, <code>isSnare</code>, </code>isHat</code>, 
- * <code>isRange</code>, and <code>isOnset(int)</code> to track whatever kind 
- * of beats you are looking to track, they will report true or false based on 
- * the state of the analysis. To "tick" the analysis you must call <code>detect</code> 
- * with successive buffers of audio. You can do this inside of <code>draw</code>, 
- * but you are likely to miss some audio buffers if you do this. The sketch implements 
- * an <code>AudioListener</code> called <code>BeatListener</code> so that it can call 
- * <code>detect</code> on every buffer of audio processed by the system without repeating 
- * a buffer or missing one.
- * 
- * This sketch plays an entire song so it may be a little slow to load.
  */
 
-//import jmcvideo.*;
+import jmcvideo.*;
 import processing.video.*;
 import processing.opengl.*;
-
 import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
+import codeanticode.glgraphics.*;
 
 import ddf.minim.*;
 import ddf.minim.analysis.*;
@@ -60,8 +48,9 @@ OverlayArtist[] oArtists;
 int numPointSets = 14;
 int currentPreset = 0;
 LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
-//JMCMovieGL sosMovie;
-Movie sosMovie;
+
+JMCMovieGL sosMovie;
+// Movie sosMovie;
 
 void setup()
 {
@@ -69,12 +58,19 @@ void setup()
   // try to interact with the drawing buffer via the the pixel array
   // (because swapping the data from the video card to memory is relatively
   // slow).
-  size(800, 600, OPENGL);
+  
+  size(640, 360, GLConstants.GLGRAPHICS);  
+  
+  // Fullscreen
+  // size(screen.width, screen.height, GLConstants.GLGRAPHICS);
+  
   // Processing seems to force 2x smooth if it's not explicitly disabled
   hint(DISABLE_OPENGL_2X_SMOOTH);
   hint(ENABLE_OPENGL_4X_SMOOTH);
-  // Fullscreen
-  //size(screen.width, screen.height);
+  smooth();
+  gl = (( PGraphicsOpenGL )g).gl;
+  gl.glEnable(GL.GL_LINE_SMOOTH);
+
   frameRate(60);
   smooth();
 
@@ -98,7 +94,7 @@ void setup()
   // algorithm if it is giving too many false-positives. The default value is 10, 
   // which is essentially no damping. If you try to set the sensitivity to a negative value, 
   // an error will be reported and it will be set to 10 instead. 
-  beat.setSensitivity(2);
+  beat.setSensitivity(400);
 
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
@@ -115,56 +111,64 @@ void setup()
   // doesn't work, it just displays a single frame.
   // It's trivial to play a movie directly, but it's really slow using the
   // Quicktime based Processing video library.
-  sosMovie = new Movie(this, "station.mov");
-  //sosMovie = movieFromDataPath("station.mov"); // JMC
+  // sosMovie = new Movie(this, "carnival2.mov");
+  sosMovie = movieFromDataPath("fox.mov"); // JMC
   sosMovie.loop();
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
   bgArtist.init(sosMovie);
 //  sosMovie.stop();
 
-  pArtist = new ImagePointArtist("yinYang.gif"); // createPointArtist("CirclePointArtist");
+  // pArtist = new ImagePointArtist("yinYang.gif"); // createPointArtist("CirclePointArtist");
+  pArtist = new PointArtist();
   pMotion = null; //new PointMotion(); //null; //PointMotionFactory.createMotion(NoMotion);
 
+  // WITH waveformoverlay
   oArtists = new OverlayArtist[2];
   oArtists[0] = createOverlayArtist("WaveformOverlayArtist");
   oArtists[0].init(song);
   oArtists[1] = createOverlayArtist("BlurOverlayArtist");
   oArtists[1].init(new Double(0.50));
+  
+  // WITHOUT
+  oArtists = new OverlayArtist[1];
+  oArtists[0] = createOverlayArtist("BlurOverlayArtist");
+  oArtists[0].init(new Double(0.50));
 
   // Create LemurPoint objects
-  int a = 0;
-  for (int j = 0; j < numPointSets; j++) {
-    pointSets[j] = new LemurPoint[10];
-    for (int i = 0; i < 10; i++) {
-      a = i + 1;
-      pointSets[j][i] = new LemurPoint(beat, a*40, a*15, i);
-      pointSets[j][i].setBand(i*2, i*2 + 3, 2);
-    }
-  }    
-  osc.connectToPoints(pointSets[currentPreset]);
-  
+  createLemurPoints();
 }
 
 void draw()
 {
-    bgArtist.paint();
-    fill(255);
+  
 
-    if (pMotion != null) {
-	pMotion.move(pointSets[currentPreset]);
-	/* comment out this line to turn off syncing the lemur points,
-	 * (you could still manually sync the lemur points with "p")
-	 */
-	osc.sendPointsToOSC(pointSets[currentPreset]);  
-    }
-    if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
-    //beat.drawGraph(this);
-    for (int i = 0; i < oArtists.length; i++) {
-      oArtists[i].paint();
-    }
-
-    // Display framerate
-    text(frameRate, width-45, height-25);
+  background(0);
+  if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
+  
+  gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
+  bgArtist.paint();
+    
+  // rect(0, 0, width, height);
+  
+  if (pMotion != null) {
+	  pMotion.move(pointSets[currentPreset]);
+	  /* comment out this line to turn off syncing the lemur points,
+	    p* (you could still manually sync the lemur points with "p")
+	  */
+	  osc.sendPointsToOSC(pointSets[currentPreset]);  
+  }
+  
+  
+  
+  //beat.drawGraph(this);
+  for (int i = 0; i < oArtists.length; i++) {
+    oArtists[i].paint();
+  }
+  
+  gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking
+  
+  // Display framerate
+  text(frameRate, width-45, height-25);
 }
 
 void stop()
@@ -201,7 +205,7 @@ void keyPressed() {
       break;
     case('m'):
       /* jump to a random place in the movie if it's being used as a background */
-      sosMovie.jump(random(sosMovie.duration()));
+      // sosMovie.jump(random(sosMovie.duration()));
       //sosMovie.loop();
       ((MovieBackgroundArtist)bgArtist).init(sosMovie);
       //sosMovie.stop();
@@ -214,6 +218,44 @@ void keyPressed() {
   }  
 }
 
+void createLemurPoints() {
+  int a = 0;
+  for (int j = 0; j < numPointSets; j++) {
+    if (j == 0) {
+      pointSets[j] = new LemurPoint[10];
+      int xincrement = width / 2;
+      int yincrement = height / 5;
+      int[][] gridCoords = new int[10][2];
+      int tempIndex = 0;
+      translate(width / 3, height / 3);
+      for (int y = 0; y < 5; y++) {
+        for (int x = 0; x < 2; x++) {
+           {
+            gridCoords[tempIndex][0] = (x * xincrement) + (xincrement / 2);
+            gridCoords[tempIndex][1] = (y * yincrement) + (yincrement / 2);
+            tempIndex ++;
+            print(x);
+          }
+        }
+      }
+      print(gridCoords);
+      for (int i = 0; i < 10; i++) {
+        pointSets[j][i] = new LemurPoint(beat, gridCoords[i][0], gridCoords[i][1], i);
+        pointSets[j][i].setBand(i*2, i*2 + 3, 2);
+      }
+    } else {
+      pointSets[j] = new LemurPoint[10];
+      for (int i = 0; i < 10; i++) {
+        a = i + 1;
+        pointSets[j][i] = new LemurPoint(beat, a*40, a*15, i);
+        pointSets[j][i].setBand(i*2, i*2 + 3, 2);
+      }
+    }
+
+  }    
+  osc.connectToPoints(pointSets[currentPreset]);
+}
+
 
 /* incoming osc message are forwarded to the oscEvent method. */
 void oscEvent(OscMessage theOscMessage) {
@@ -221,7 +263,7 @@ void oscEvent(OscMessage theOscMessage) {
 }
 
 
-/*
+
 JMCMovieGL movieFromDataPath(String filename)
 {
   return new JMCMovieGL(this, filename, RGB);
@@ -246,4 +288,4 @@ JMCMovieGL movieFromURL(String urlname)
   } 
 
   return new JMCMovieGL(this, url, RGB);
-}*/
+}
