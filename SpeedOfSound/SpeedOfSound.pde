@@ -120,7 +120,7 @@ void setup()
 
   // pArtist = new ImagePointArtist("yinYang.gif"); // createPointArtist("CirclePointArtist");
   pArtist = new PointArtist();
-  pMotion = null; //new PointMotion(); //null; //PointMotionFactory.createMotion(NoMotion);
+  pMotion = null; //new PointMotion();
 
   // WITH waveformoverlay
   oArtists = new OverlayArtist[2];
@@ -149,7 +149,6 @@ void draw()
   bgArtist.paint();
     
   // rect(0, 0, width, height);
-  
   if (pMotion != null) {
 	  pMotion.move(pointSets[currentPreset]);
 	  /* comment out this line to turn off syncing the lemur points,
@@ -223,13 +222,13 @@ void createLemurPoints() {
   for (int j = 0; j < numPointSets; j++) {
     if (j == 0) {
       pointSets[j] = new LemurPoint[10];
-      int xincrement = width / 2;
-      int yincrement = height / 5;
+      int xincrement = width / 3;
+      int yincrement = height / 3;
       int[][] gridCoords = new int[10][2];
       int tempIndex = 0;
       translate(width / 3, height / 3);
-      for (int y = 0; y < 5; y++) {
-        for (int x = 0; x < 2; x++) {
+      for (int y = 0; y < 3; y++) {
+        for (int x = 0; x < 3; x++) {
            {
             gridCoords[tempIndex][0] = (x * xincrement) + (xincrement / 2);
             gridCoords[tempIndex][1] = (y * yincrement) + (yincrement / 2);
@@ -238,10 +237,36 @@ void createLemurPoints() {
           }
         }
       }
-      print(gridCoords);
       for (int i = 0; i < 10; i++) {
         pointSets[j][i] = new LemurPoint(beat, gridCoords[i][0], gridCoords[i][1], i);
         pointSets[j][i].setBand(i*2, i*2 + 3, 2);
+        if (i == 9) {
+          pointSets[j][i].active = false;
+        }
+      }
+    }
+    else if (j == 1) {
+      pMotion = new PointMotion();
+      pMotion.mode = 2;
+      pMotion.jumpDistance = 20;
+      pointSets[j] = new LemurPoint[10];
+      for (int i = 0; i < 10; i++) {
+        a = i + 1;
+
+        if (i == 0){
+          pointSets[j][i] = new LemurPoint(beat, (width / 2 - 30), (height / 2), i);
+          pointSets[j][i].partialAlpha = true;
+          pointSets[j][i].setBand(i*2, i*2 + 3, 2);
+        } else if (i == 1) {
+          pointSets[j][i] = new LemurPoint(beat, (width / 2 + 30), (height / 2), i);
+          pointSets[j][i].partialAlpha = true;
+          pointSets[j][i].setBand(i*2, i*2 + 3, 2);
+        }
+        else {
+          pointSets[j][i] = new LemurPoint(beat, (width - 100), (height / 2), i);
+          pointSets[j][i].setBand(i*2, i*2 + 3, 2);
+          pointSets[j][i].active = false;
+        }
       }
     } else {
       pointSets[j] = new LemurPoint[10];

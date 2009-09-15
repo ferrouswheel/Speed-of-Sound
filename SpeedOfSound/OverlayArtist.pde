@@ -38,33 +38,6 @@ class BlurOverlayArtist extends OverlayArtist {
  
         gl.glAccum( GL.GL_ACCUM, 1-n );
         gl.glAccum( GL.GL_RETURN, 1.0 );
-
-// Old slow technique... but doesn't require a graphic card with an accumulation buffer.
-// A more generic effect that'd potentially be better and perhaps faster is also described at:
-// http://www.davebollinger.com/works/feedback/
-/*        loadPixels();
-        // Loop through every pixel in the image.
-        for (int y = 1; y < height-1; y++) { // Skip top and bottom edges
-          for (int x = 1; x < width-1; x++) { // Skip left and right edges
-            float sum = 0; // Kernel sum for this pixel
-            for (int ky = -1; ky <= 1; ky++) {
-              for (int kx = -1; kx <= 1; kx++) {
-                // Calculate the adjacent pixel for this kernel point
-                int pos = (y + ky)*width + (x + kx);
-                // Image is grayscale, red/green/blue are identical
-                float val = pixels[pos];
-                // Multiply adjacent pixels based on the kernel values
-                sum += kernel[ky+1][kx+1] * val;
-              }
-            }
-            // For this pixel in the new image, set the gray value
-            // based on the sum from the kernel
-            pixels[y*width + x] = color(sum);
-          }
-        }
-        // State that there are changes to edgeImg.pixels[]
-        updatePixels();
-        */
     }
 }
 

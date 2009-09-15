@@ -4,6 +4,8 @@ class LemurPoint
 
   // Whether or not the point is being drawn or is affecting the scene
   public boolean active = true;
+  public boolean partialAlpha = false;
+  
   
   // The range that 
   int lowerBandIndex = 1;

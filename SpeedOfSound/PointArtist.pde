@@ -1,8 +1,9 @@
 class PointArtist {
 
-    int beatSize = 200;
-    int minSize = 60;
+    int beatSize = 120;
+    int minSize = 120;
     float fadeProportion = 0.95;
+        
     PointArtist() {
     }
 
@@ -26,8 +27,10 @@ class PointArtist {
             lpSize = beatSize;
         }
         
-        fill(255);
-        ellipse(lp.x, lp.y, lpSize, lpSize);
+        if (lp.partialAlpha == false) {
+          fill(255);
+          ellipse(lp.x, lp.y, lpSize, lpSize);
+        }
 
     }
     
@@ -37,13 +40,19 @@ class PointArtist {
         if (lp.detected()) {
             lpSize = beatSize;
         }
+        
+        if (lp.partialAlpha == true) {
+           gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE);
+        }
 
         fill(64);
-        ellipse(lp.x, lp.y, (lpSize + 6), (lpSize + 6));
+        ellipse(lp.x, lp.y, (lpSize + 3), (lpSize + 3));
         fill(128);
-        ellipse(lp.x, lp.y, (lpSize + 4), (lpSize + 4));
-        fill(192);
         ellipse(lp.x, lp.y, (lpSize + 2), (lpSize + 2));
+        if (lp.partialAlpha == false) {
+          fill(192);
+          ellipse(lp.x, lp.y, (lpSize + 1), (lpSize + 1));
+        }
         
         lp.currentSize = (int) constrain(lpSize * fadeProportion, minSize, beatSize);
     }
