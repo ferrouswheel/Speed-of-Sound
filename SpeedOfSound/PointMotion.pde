@@ -34,7 +34,6 @@ class PointMotion {
     }
 
     void bouncePoint(LemurPoint lp) {
-        println("foo");
         if (!lp.active) return; // do nothing is not being used
         if (lp.detected()) {
           if (isGoingLeft == true ) { // Move Left

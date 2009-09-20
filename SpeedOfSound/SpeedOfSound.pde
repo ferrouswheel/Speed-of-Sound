@@ -50,6 +50,12 @@ int currentPreset = 0;
 LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
 
 JMCMovieGL sosMovie;
+Boolean applyThreshold = false;
+Boolean useRorschach = true;
+float thresh = 0.1;
+Rorschach rorschachLayer;
+GLGraphicsOffScreen rOffscreen;
+
 // Movie sosMovie;
 
 void setup()
@@ -60,40 +66,29 @@ void setup()
   // slow).
   
   size(640, 360, GLConstants.GLGRAPHICS);  
-  
+  rOffscreen = new GLGraphicsOffScreen(this, width, height);
   // Fullscreen
   // size(screen.width, screen.height, GLConstants.GLGRAPHICS);
   
   // Processing seems to force 2x smooth if it's not explicitly disabled
   hint(DISABLE_OPENGL_2X_SMOOTH);
   hint(ENABLE_OPENGL_4X_SMOOTH);
-  smooth();
   gl = (( PGraphicsOpenGL )g).gl;
   gl.glEnable(GL.GL_LINE_SMOOTH);
-
   frameRate(60);
   smooth();
-
+  colorMode(HSB);
+  
   minim = new Minim(this);
   osc = new OSCConnection(this,"192.168.0.2",8000);
-
   song = minim.getLineIn(Minim.STEREO, 512);
-  // song.play(); // needed if the song is from an mp3 file
 
   // a beat detection object that is FREQ_ENERGY mode that 
   // expects buffers the length of song's buffer size
   // and samples captured at songs's sample rate
   beat = new BeatDetect(song.bufferSize(), song.sampleRate());
-  
   // make a new beat listener, so that we won't miss any buffers for the analysis
   bl = new BeatListener(beat, song);
-
-  // set the sensitivity to 300 milliseconds
-  // After a beat has been detected, the algorithm will wait for 300 milliseconds 
-  // before allowing another beat to be reported. You can use this to dampen the 
-  // algorithm if it is giving too many false-positives. The default value is 10, 
-  // which is essentially no damping. If you try to set the sensitivity to a negative value, 
-  // an error will be reported and it will be set to 10 instead. 
   beat.setSensitivity(400);
 
   textFont(createFont("SanSerif", 16));
@@ -102,37 +97,26 @@ void setup()
   // TODO ensure all artists are created via the factory methods (e.g.
   // createBackgroundArtist() )
 
-  // bgArtist = createBackgroundArtist("BlankBackgroundArtist");
-  // color c = #550000;
-  // bgArtist.init(new Integer(c));
-
-  // Load a movie for the background movie artist
-  // TODO: it's current set up to read 125 frames and animate them... except it
-  // doesn't work, it just displays a single frame.
-  // It's trivial to play a movie directly, but it's really slow using the
-  // Quicktime based Processing video library.
   // sosMovie = new Movie(this, "carnival2.mov");
   sosMovie = movieFromDataPath("fox.mov"); // JMC
   sosMovie.loop();
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
   bgArtist.init(sosMovie);
-//  sosMovie.stop();
 
-  // pArtist = new ImagePointArtist("yinYang.gif"); // createPointArtist("CirclePointArtist");
   pArtist = new PointArtist();
   pMotion = null; //new PointMotion();
 
-  // WITH waveformoverlay
-  oArtists = new OverlayArtist[2];
-  oArtists[0] = createOverlayArtist("WaveformOverlayArtist");
-  oArtists[0].init(song);
-  oArtists[1] = createOverlayArtist("BlurOverlayArtist");
-  oArtists[1].init(new Double(0.50));
-  
+  // // WITH waveformoverlay
+  // oArtists = new OverlayArtist[2];
+  // oArtists[0] = createOverlayArtist("WaveformOverlayArtist");
+  // oArtists[0].init(song);
+  // oArtists[1] = createOverlayArtist("BlurOverlayArtist");
+  // oArtists[1].init(new Double(0.50));
   // WITHOUT
   oArtists = new OverlayArtist[1];
   oArtists[0] = createOverlayArtist("BlurOverlayArtist");
   oArtists[0].init(new Double(0.50));
+  rorschachLayer = new Rorschach();
 
   // Create LemurPoint objects
   createLemurPoints();
@@ -143,29 +127,33 @@ void draw()
   
 
   background(0);
-  if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
-  
+  if (useRorschach) {
+    rOffscreen.beginDraw();
+    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
+    rorschachLayer.paint();
+    gl.glDisable(GL.GL_BLEND);
+    rOffscreen.filter(THRESHOLD,0.9);
+    rOffscreen.endDraw();
+    
+    image(rOffscreen.getTexture(), 0, 0);
+  } else {
+    if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
+  }
+
+  gl.glEnable(GL.GL_BLEND);
   gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
   bgArtist.paint();
     
   // rect(0, 0, width, height);
   if (pMotion != null) {
 	  pMotion.move(pointSets[currentPreset]);
-	  /* comment out this line to turn off syncing the lemur points,
-	    p* (you could still manually sync the lemur points with "p")
-	  */
 	  osc.sendPointsToOSC(pointSets[currentPreset]);  
   }
-  
-  
-  
-  //beat.drawGraph(this);
   for (int i = 0; i < oArtists.length; i++) {
     oArtists[i].paint();
   }
   
   gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking
-  
   // Display framerate
   text(frameRate, width-45, height-25);
 }

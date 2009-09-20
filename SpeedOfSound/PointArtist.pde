@@ -1,7 +1,7 @@
 class PointArtist {
 
-    int beatSize = 120;
-    int minSize = 120;
+    int beatSize = 220;
+    int minSize = 60;
     float fadeProportion = 0.95;
         
     PointArtist() {
