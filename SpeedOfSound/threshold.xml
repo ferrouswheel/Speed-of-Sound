@@ -1,0 +1,5 @@
+<filter name="threshold filter">
+    <description>Threshold filter</description>
+    <fragment>threshold.glsl</fragment>
+    <textures input="1" output="1"></textures>
+</filter>

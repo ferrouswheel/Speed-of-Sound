@@ -50,26 +50,23 @@ int currentPreset = 0;
 LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
 
 JMCMovieGL sosMovie;
-Boolean applyThreshold = false;
-Boolean useRorschach = true;
+Boolean applyThreshold = true;
+Boolean useRorschach = false;
 float thresh = 0.1;
 Rorschach rorschachLayer;
 GLGraphicsOffScreen rOffscreen;
-
+GLTexture texDest;
+GLTextureFilter threshhold;
 // Movie sosMovie;
 
 void setup()
 {
-  // We use OpenGL because it's the fastest, but it does break thinks that
-  // try to interact with the drawing buffer via the the pixel array
-  // (because swapping the data from the video card to memory is relatively
-  // slow).
-  
   size(640, 360, GLConstants.GLGRAPHICS);  
   rOffscreen = new GLGraphicsOffScreen(this, width, height);
+  texDest = new GLTexture(this, width, height);
+  threshhold = new GLTextureFilter(this, "threshold.xml");
   // Fullscreen
   // size(screen.width, screen.height, GLConstants.GLGRAPHICS);
-  
   // Processing seems to force 2x smooth if it's not explicitly disabled
   hint(DISABLE_OPENGL_2X_SMOOTH);
   hint(ENABLE_OPENGL_4X_SMOOTH);
@@ -125,17 +122,23 @@ void setup()
 void draw()
 {
   
-
+  gl.glEnable(GL.GL_LINE_SMOOTH);
   background(0);
   if (useRorschach) {
     rOffscreen.beginDraw();
     gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
     rorschachLayer.paint();
     gl.glDisable(GL.GL_BLEND);
-    rOffscreen.filter(THRESHOLD,0.9);
+    // rOffscreen.filter(THRESHOLD,0.9);
     rOffscreen.endDraw();
+    if (applyThreshold) {
+      rOffscreen.getTexture().filter(threshhold, texDest);
+      image(texDest, 0, 0);
+    } else {
+      image(rOffscreen.getTexture(), 0, 0);
+    }
+
     
-    image(rOffscreen.getTexture(), 0, 0);
   } else {
     if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
   }
@@ -190,6 +193,27 @@ void keyPressed() {
       /* change point artist */
       pArtist = new PointArtist();
       break;
+    case('r'):
+      useRorschach = !useRorschach;
+      break;
+    case('t'):
+      applyThreshold = !applyThreshold;
+      break;
+    case('1'):
+      rorschachLayer.movementMode = 0;
+      break;
+    case('2'):
+      rorschachLayer.movementMode = 1;
+      break;
+    case('3'):
+      rorschachLayer.movementMode = 2;
+      break;
+    case('4'):
+      rorschachLayer.movementMode = 3;
+      break;
+    case('5'):
+      rorschachLayer.movementMode = 4;
+      break;
     case('m'):
       /* jump to a random place in the movie if it's being used as a background */
       // sosMovie.jump(random(sosMovie.duration()));
@@ -208,7 +232,7 @@ void keyPressed() {
 void createLemurPoints() {
   int a = 0;
   for (int j = 0; j < numPointSets; j++) {
-    if (j == 0) {
+    if (j == 1) {
       pointSets[j] = new LemurPoint[10];
       int xincrement = width / 3;
       int yincrement = height / 3;
@@ -233,7 +257,7 @@ void createLemurPoints() {
         }
       }
     }
-    else if (j == 1) {
+    else if (j == 0) {
       pMotion = new PointMotion();
       pMotion.mode = 2;
       pMotion.jumpDistance = 20;

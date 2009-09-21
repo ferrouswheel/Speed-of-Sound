@@ -38,17 +38,9 @@ class MovieBackgroundArtist extends BackgroundArtist {
     void init(Object o) {
   m = (JMCMovieGL) o;
   // m = (Movie) o;
-	// Read a series of frames into a image array (running video real time
-	// is sloooow.
+
 	int counter = 0;
-//	while (counter < maxFrames) { // && m.time() <= m.duration()) {
-//	    if (m.available()) {
-//		m.read();
-//		frames[counter] = m.get();
-//		counter++;
-//	    }
-//	}
-//        totalFrames=counter;
+
     }
 
     void paint() {
