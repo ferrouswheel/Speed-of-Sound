@@ -50,21 +50,24 @@ int currentPreset = 0;
 LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
 
 JMCMovieGL sosMovie;
+String[] vids = new String[]{"station.mov", "carnival2.mov","fox.mov"};
+int vidNum = 0;
+
 Boolean applyThreshold = true;
 Boolean useRorschach = false;
 float thresh = 0.1;
-Rorschach rorschachLayer;
-GLGraphicsOffScreen rOffscreen;
-GLTexture texDest;
-GLTextureFilter threshhold;
+Rorschach rorschachLayer; // An alternative to the PointArtist layer.
+GLGraphicsOffScreen rOffscreen;  // Used to store the Rorschach so we can apply pixel filters
+GLTexture texDest; // Used as a destination for pixel-filtered offscreen graphics.
+GLTextureFilter threshhold; // This links to the Threshhold filter used by Rorschach
 // Movie sosMovie;
 
 void setup()
 {
   size(640, 360, GLConstants.GLGRAPHICS);  
-  rOffscreen = new GLGraphicsOffScreen(this, width, height);
-  texDest = new GLTexture(this, width, height);
-  threshhold = new GLTextureFilter(this, "threshold.xml");
+  rOffscreen = new GLGraphicsOffScreen(this, width, height); // Init the offscreen buffer
+  texDest = new GLTexture(this, width, height); // Texture
+  threshhold = new GLTextureFilter(this, "threshold.xml"); // And threshhold
   // Fullscreen
   // size(screen.width, screen.height, GLConstants.GLGRAPHICS);
   // Processing seems to force 2x smooth if it's not explicitly disabled
@@ -73,6 +76,7 @@ void setup()
   gl = (( PGraphicsOpenGL )g).gl;
   gl.glEnable(GL.GL_LINE_SMOOTH);
   frameRate(60);
+  frame.setResizable(true);
   smooth();
   colorMode(HSB);
   
@@ -87,7 +91,7 @@ void setup()
   // make a new beat listener, so that we won't miss any buffers for the analysis
   bl = new BeatListener(beat, song);
   beat.setSensitivity(400);
-
+ 
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
 
@@ -124,30 +128,26 @@ void draw()
   
   gl.glEnable(GL.GL_LINE_SMOOTH);
   background(0);
-  if (useRorschach) {
-    rOffscreen.beginDraw();
+  if (useRorschach) { // Simple switch. Use Rorschach or PointArtist
+    rOffscreen.beginDraw(); // Begin drawing offscreen
     gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
     rorschachLayer.paint();
     gl.glDisable(GL.GL_BLEND);
-    // rOffscreen.filter(THRESHOLD,0.9);
     rOffscreen.endDraw();
-    if (applyThreshold) {
+    if (applyThreshold) { // Apply or not apply Threshhold filter
       rOffscreen.getTexture().filter(threshhold, texDest);
       image(texDest, 0, 0);
     } else {
       image(rOffscreen.getTexture(), 0, 0);
     }
-
-    
   } else {
     if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
   }
 
-  gl.glEnable(GL.GL_BLEND);
+  gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
   gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
-  bgArtist.paint();
+  bgArtist.paint(); // Movie rendered on white regions of screen
     
-  // rect(0, 0, width, height);
   if (pMotion != null) {
 	  pMotion.move(pointSets[currentPreset]);
 	  osc.sendPointsToOSC(pointSets[currentPreset]);  
@@ -156,7 +156,8 @@ void draw()
     oArtists[i].paint();
   }
   
-  gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking
+  gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking so framerate display is legible
+  
   // Display framerate
   text(frameRate, width-45, height-25);
 }
@@ -225,14 +226,14 @@ void keyPressed() {
       currentPreset +=1;
       if (currentPreset >= numPointSets) currentPreset = 0;
       osc.connectToPoints(pointSets[currentPreset]);
-      break;
+      break;    
   }  
 }
 
 void createLemurPoints() {
   int a = 0;
   for (int j = 0; j < numPointSets; j++) {
-    if (j == 1) {
+    if (j == 0) {
       pointSets[j] = new LemurPoint[10];
       int xincrement = width / 3;
       int yincrement = height / 3;
@@ -256,8 +257,10 @@ void createLemurPoints() {
           pointSets[j][i].active = false;
         }
       }
+      osc.sendNumPointsToOSC();
+      osc.changePreset(0);
     }
-    else if (j == 0) {
+    else if (j == 1) {
       pMotion = new PointMotion();
       pMotion.mode = 2;
       pMotion.jumpDistance = 20;
@@ -275,7 +278,7 @@ void createLemurPoints() {
           pointSets[j][i].setBand(i*2, i*2 + 3, 2);
         }
         else {
-          pointSets[j][i] = new LemurPoint(beat, (width - 100), (height / 2), i);
+          pointSets[j][i] = new LemurPoint(beat, 0, 0, i);
           pointSets[j][i].setBand(i*2, i*2 + 3, 2);
           pointSets[j][i].active = false;
         }

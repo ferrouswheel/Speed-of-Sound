@@ -1,5 +1,4 @@
 class Rorschach {
-  public boolean enabled = false;
   int nBalls = 50;
   int nSteps;
   float vMax;
@@ -34,6 +33,7 @@ class Rorschach {
     moveBalls();
     rOffscreen.background(0);
     for(int i=0; i<nBalls; i++){
+        // Render mirror-images of the balls
         rOffscreen.image(ballImage,(width-balls[i][0])-radius,balls[i][1]-radius);
         rOffscreen.image(ballImage,balls[i][0]-radius,balls[i][1]-radius);
     }
@@ -266,43 +266,8 @@ class Rorschach {
   void generateImage(){
     if(ballShapeMode == 0)
       generateCircleImage();
-    if(ballShapeMode == 1)
-    if(ballShapeMode == 2)    
-      generateHyperbolicImage();
   }
 
-
-  void generateRingImage(){
-    ballImage = createImage(radius*2,radius*2,ARGB);
-    color thisColor = color(0,0,0,0);
-    float delta = 0;
-      for(int x= 0; x<=radius*2; x++)
-        for(int y= 0; y<=radius*2; y++){
-          delta = sqrt(pow(x-radius,2)+pow(y-radius,2));
-          if(delta<radius){
-            if(blur){
-              if(invertAlpha)
-                thisColor = color(0,0,0,
-                            255.0*( (int)(2*abs(delta/(float)radius-.5)*nSteps)/(nSteps-1.0) ));
-              else
-                thisColor = color(0,0,0,
-                            255.0*( (int)(nSteps+1-2*abs(delta/(float)radius-.5)*nSteps)/(nSteps+0.0) ));
-            }
-            else{
-              if(invertAlpha)
-                thisColor = color(0,0,0,
-                            255*(2*abs(delta/(float)radius-.5)));
-              else
-                thisColor = color(0,0,0,
-                            255*(1-2*abs(delta/(float)radius-.5)));
-            }
-            ballImage.set(x,y,thisColor);
-          }
-          else{
-            ballImage.set(x,y,color(0,0,0,0));
-          }
-        }
-  }  
 
   void generateCircleImage(){
     ballImage = createImage(radius*2,radius*2,ARGB);
@@ -326,39 +291,4 @@ class Rorschach {
       }
   }
 
-  void generateHyperbolicImage(){
-    ballImage = createImage(radius*2,radius*2,ARGB);
-    color thisColor = color(0,0,0,0);
-    float delta = 0;
-      for(int x= 0; x<=radius; x++)
-        for(int y= 0; y<=radius; y++){
-          delta = 2*radius/(float)(2*radius-x)-1;
-          delta+= 2*radius/(float)(2*radius-y)-1;
-          delta = delta/2.0;
-          if(blur){
-            if(invertAlpha)
-              thisColor = color(0,0,0,
-                                255*(nSteps-1-(int)(delta*nSteps))/(nSteps-1));
-            else
-              thisColor = color(0,0,0,
-                                255*((int)(delta*nSteps)+1)/(nSteps));
-          }
-          else{
-            if(invertAlpha)
-              thisColor = color(0,0,0,
-                          255*(1.0-delta));
-            else
-              thisColor = color(0,0,0,255*(delta));
-          }
-          ballImage.set(x,y,thisColor);
-          ballImage.set(y,x,thisColor);
-          ballImage.set(2*radius-x,y,thisColor);
-          ballImage.set(y,2*radius-x,thisColor);
-          ballImage.set(2*radius-x,2*radius-y,thisColor);
-          ballImage.set(2*radius-y,2*radius-x,thisColor);
-          ballImage.set(x,2*radius-y,thisColor);
-          ballImage.set(2*radius-y,x,thisColor);
-        }
-  }
-  
 }

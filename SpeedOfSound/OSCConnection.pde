@@ -70,7 +70,24 @@ class OSCConnection {
         currentPreset = p;
         connectToPoints(pointSets[currentPreset]);
       }
+      sendNumPointsToOSC();
     }
+    
+    void sendNumPointsToOSC() {
+      int active = 0;
+      for (int i = 0; i < pointSets[currentPreset].length; i++) {
+        if (pointSets[currentPreset][i].active) {
+          active ++;
+        }
+      }
+      
+      OscMessage numOscMessage = new OscMessage("/NumPoints/x");
+      float num = active;
+      numOscMessage.add(num);
+      
+      oscP5.send(numOscMessage, oscDestination);
+    }
+    
 
     void handleMessage(OscMessage theOscMessage) {
         String path = theOscMessage.addrPattern();
@@ -83,21 +100,19 @@ class OSCConnection {
             //int pIndex = Integer.parseInt(path.substring(6,path.indexOf("/",6)));
             if (elements[2].equals("x")) {
                 int pointCount = theOscMessage.typetag().length();
-                println("points = " + pointCount);
                 for (int i = 0; i < pointCount; i++) {
                     float x = theOscMessage.get(i).floatValue();
                     updateX(i,x);
                 }
             } else if (elements[2].equals("y")) {
                 int pointCount = theOscMessage.typetag().length();
-                println("points = " + pointCount);
                 for (int i = 0; i < pointCount; i++) {
                     float y = theOscMessage.get(i).floatValue();
                     updateY(i,y);
                 }
             }
         } else if (elements[1].equals("PointsPreset") &&
-                   elements[2].equals("x")) {
+            elements[2].equals("x")) {
             int presetCount = theOscMessage.typetag().length();
             int pIndex = 0;
             for (int i = 0; i < presetCount; i++) {
@@ -107,6 +122,52 @@ class OSCConnection {
                 }
             }
             changePreset(pIndex);
+        } else if (elements[1].equals("NumPoints")) {
+          int numPoints = int(round(theOscMessage.get(0).floatValue()));
+          for (int i = 0; i < pointSets[currentPreset].length; i++) {
+            if (i >= numPoints) {
+              pointSets[currentPreset][i].active = false;
+            } else {
+              pointSets[currentPreset][i].active = true;
+            }
+          }
+        } else if (elements[1].equals("BackgroundSource")) {
+          int backgroundCount = theOscMessage.typetag().length();
+          int bIndex = 0;
+          for (int i = 0; i < backgroundCount; i++) {
+            float x = theOscMessage.get(i).floatValue();
+            if (x == 1.0) {
+              bIndex = i; break;
+            }
+          }
+          if (bIndex < vids.length) {
+            sosMovie.switchVideo(vids[bIndex]);
+            sosMovie.loop();
+          } else {
+            sosMovie.switchVideo(vids[0]); // Revert to default video
+            sosMovie.loop();
+          }
+        } else if (elements[1].equals("VideoSpeed")) {
+          int speed = int(round(theOscMessage.get(0).floatValue()));
+          if (speed == 1) {
+            sosMovie.setRate(speed);
+          } else {
+            sosMovie.setRate(speed * 2);
+          }
+        } else if (elements[1].equals("RorschachToggle")) {
+          int bool = int(round(theOscMessage.get(0).floatValue()));
+          if (bool == 1) {
+            useRorschach = true;
+          } else {
+            useRorschach = false;
+          }
+        } else if (elements[1].equals("ResetRorschach")) {
+          rorschachLayer.resetParams();
+        } else if (elements[1].equals("SizeRange")) {
+          int bottom = int(round(theOscMessage.get(0).floatValue()));
+          int top = int(round(theOscMessage.get(1).floatValue()));
+          pArtist.beatSize = top * 10;
+          pArtist.minSize = bottom * 10;
         }
     }
 
