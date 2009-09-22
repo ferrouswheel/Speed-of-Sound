@@ -26,11 +26,13 @@ class OSCConnection {
       sendPointsToOSC(pointSets[currentPreset]);
       sendNumPointsToOSC();
       resetRorschachOSC();
+      sendRorschachBeatIncrement();
       sendRorschachToggle();
       sendRorschachRadius();
       sendRorschachMode();
       sendMovementMode();
       sendPointArtistRange();
+      setMoveJumpDistance();
     }
 
     void sendPointsToOSC(LemurPoint[] points) {
@@ -130,6 +132,12 @@ class OSCConnection {
       }
     }
     
+    void sendRorschachBeatIncrement() {
+      OscMessage msg = new OscMessage("/BeatIncrement/x");
+      msg.add(float(rorschachLayer.speedUp));
+      oscP5.send(msg, oscDestination);
+    }
+    
     void sendRorschachMode() {
       OscMessage radiusOsc = new OscMessage("/BlobMoveMode/x");
       float[] vec = new float[8];
@@ -165,6 +173,12 @@ class OSCConnection {
       vec[1] = pArtist.beatSize / 10;
       toggleOsc.add(vec);
       oscP5.send(toggleOsc, oscDestination);      
+    }
+    
+    void setMoveJumpDistance() {      
+      OscMessage jumpOsc = new OscMessage("/JumpDistance/x");
+      jumpOsc.add(float(pMotion.jumpDistance));
+      oscP5.send(jumpOsc, oscDestination);
     }
 
     void handleMessage(OscMessage theOscMessage) {
@@ -240,6 +254,7 @@ class OSCConnection {
           } else {
             useRorschach = false;
           }
+          sendRorschachToggle();
         } else if (elements[1].equals("ResetRorschach")) {
           rorschachLayer.resetParams();
           setAll();
@@ -278,6 +293,11 @@ class OSCConnection {
             }
           }
           pMotion.mode = mIndex;
+        } else if (elements[1].equals("JumpDistance")) {
+          pMotion.jumpDistance = int(round(theOscMessage.get(0).floatValue()));
+        } else if (elements[1].equals("BeatIncrement")) {
+          rorschachLayer.speedUp = int(round(theOscMessage.get(0).floatValue()));
+          println(rorschachLayer.speedUp + "  WHEEEEEEE");
         }
     }
 

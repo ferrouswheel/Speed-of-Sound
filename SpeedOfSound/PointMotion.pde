@@ -1,6 +1,6 @@
 class PointMotion {
 
-    public int jumpDistance = 5;
+    int jumpDistance;
     boolean isGoingLeft = false; // Switch this to bounce left and right
     int cumulativeIncrement = 0; // Track how far the ball has moved from init
     int mode = 0; // Mode. 

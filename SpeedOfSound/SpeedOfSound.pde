@@ -90,7 +90,7 @@ void setup()
   beat = new BeatDetect(song.bufferSize(), song.sampleRate());
   // make a new beat listener, so that we won't miss any buffers for the analysis
   bl = new BeatListener(beat, song);
-  beat.setSensitivity(100);
+  beat.setSensitivity(60);
  
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);

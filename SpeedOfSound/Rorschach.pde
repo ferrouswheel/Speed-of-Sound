@@ -17,6 +17,8 @@ class Rorschach {
   PImage ballImage;
   int radius;
   
+  int speedUp = 2;
+  
   boolean generatingImage = false;
   
   
@@ -34,8 +36,9 @@ class Rorschach {
     
     moveBalls();
     if(beat.isKick()) {
-      moveBalls();
-      moveBalls();
+      for(int i = 0; i < speedUp; i++) {
+        moveBalls();
+      }
     }
     
     rOffscreen.background(0);
