@@ -3,7 +3,7 @@ class PointMotion {
     public int jumpDistance = 5;
     boolean isGoingLeft = false; // Switch this to bounce left and right
     int cumulativeIncrement = 0; // Track how far the ball has moved from init
-    public int mode = 0; // Mode. 
+    int mode = 0; // Mode. 
     // 0 = off. 
     // 1 = Crawl around screen.
     // 2 = bounce left/right 
@@ -11,14 +11,18 @@ class PointMotion {
     PointMotion() {}
 
     void move(LemurPoint[] points) {
-      if (mode != 0) {
+      if (mode == 1) {
         for (int i = 0; i < points.length; i++) {
-          if (mode == 1) {
-            crawlPoint(points[i]);
-          } else if (mode == 2) {
-            bouncePoint(points[i]);
-          }
+          crawlPoint(points[i]);
         }
+      } else if (mode == 2) {
+        for (int i = 0; i < points.length; i++) {
+          bouncePoint(points[i]);
+        }
+      } else if (mode == 3) {
+        swirlPoints(points);
+      } else {
+        // No movement if exceed bounds
       }
     }
 
@@ -50,5 +54,26 @@ class PointMotion {
             }
           }
         }
+    }
+
+    void swirlPoints(LemurPoint[] points) {
+      int radius = pArtist.minSize / 2;
+      float rSquared = 0;
+      float theta = 0;
+      float vel0 = max(width,height)/150;
+      float vel = vel0+0;
+      for(int i = 0; i < points.length; i++){
+        rSquared = (points[i].x-width/2)*(points[i].x-width/2)+
+                   (points[i].y-height/2)*(points[i].y-height/2);
+        theta = atan2(points[i].y-height/2,points[i].x-width/2);
+
+        if(rSquared > max(width+radius,height+radius)*max(width+radius,height+radius)*.25){
+            points[i].x = int(round(random(radius,width-radius)));
+            points[i].y = int(round(random(radius,height-radius)));
+           }
+        vel = vel0*(1-rSquared/(width*width/(40)));
+        points[i].x+= vel*cos(theta+PI/2);
+        points[i].y+= vel*sin(theta+PI/2);
+      }
     }
 }

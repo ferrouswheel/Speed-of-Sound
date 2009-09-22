@@ -27,35 +27,55 @@ class MovieBackgroundArtist extends BackgroundArtist {
     int totalFrames; // less than max if not enough in movie.
     int pvw, pvh;
     JMCMovieGL m;
+    int beatTimer = 0;
     // Movie m;
 
     MovieBackgroundArtist() {
-	currentFrame = 0;
-	totalFrames = 0;
-	frames = new PImage[maxFrames];
+	    currentFrame = 0;
+	    totalFrames = 0;
+	    frames = new PImage[maxFrames];
     }
 
     void init(Object o) {
-  m = (JMCMovieGL) o;
-  // m = (Movie) o;
-
-	int counter = 0;
-
+      m = (JMCMovieGL) o;
+      // m = (Movie) o;
+	    int counter = 0;
     }
 
     void paint() {
-        PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
-
-        pgl.beginGL();  
-        {
-          m.image(gl, 0, 0, width, height);
-        }
-        pgl.endGL();
+      if (beat.isKick()) {
+        sosMovie.setCurrentTime(sosMovie.getCurrentTime() - 0.5);
+      }
+      
+      PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
+      
+      pgl.beginGL();  
+      {
+        m.image(gl, 0, 0, width, height);
+      }
+      pgl.endGL();
         
         // if (m.available()) m.read();
         // image(m, 0, 0, width, height);
     }
 
+}
+
+class ImageBackgroundArtist extends BackgroundArtist {
+  PImage[] images;
+  int currentImage;
+  
+  void ImageBackgroundArtist() {
+    init();
+  }
+
+  void init() {
+    // currentImage = images[0];
+  }
+  
+  void paint() {
+    // image(currentImage, 0, 0);
+  }
 }
 
 // Normally the below would go in a separate Factory class, but Processing makes
@@ -69,14 +89,16 @@ String[] backgroundArtistTypes = {
 
 BackgroundArtist createBackgroundArtist(String t) {
     if (t.equals("BlankBackgroundArtist")) {
-	return new BackgroundArtist();
-    //case ImageBgArtist:
-//      return new ImageBgArtist();
+	    return new BackgroundArtist();
+      //case ImageBgArtist:
+      //      return new ImageBgArtist();
     } else if (t.equals("MovieBackgroundArtist")) {
-        return new MovieBackgroundArtist();
+      return new MovieBackgroundArtist();
+    } else if (t.equals("ImageBackgroundArtist")) {
+      return new ImageBackgroundArtist();
     } else {
-	println("Unknown or unimplemented artist type");
-	return null;
+	    println("Unknown or unimplemented artist type");
+	    return null;
     }
    
 }

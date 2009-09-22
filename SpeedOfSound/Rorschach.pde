@@ -1,5 +1,5 @@
 class Rorschach {
-  int nBalls = 50;
+  int nBalls = 99;
   int nSteps;
   float vMax;
   //i, x,y,vx,vy
@@ -9,7 +9,6 @@ class Rorschach {
   int numBallShapes = 3;
   int movementMode;
   boolean applyThreshold;
-  boolean blur;
   boolean invertAlpha;
   boolean blackBackground;
   color backgroundColor;
@@ -17,6 +16,8 @@ class Rorschach {
   boolean randomColor;
   PImage ballImage;
   int radius;
+  
+  boolean generatingImage = false;
   
   
   Rorschach() {
@@ -30,7 +31,13 @@ class Rorschach {
   }
   
   void paint(){
+    
     moveBalls();
+    if(beat.isKick()) {
+      moveBalls();
+      moveBalls();
+    }
+    
     rOffscreen.background(0);
     for(int i=0; i<nBalls; i++){
         // Render mirror-images of the balls
@@ -44,12 +51,11 @@ class Rorschach {
     movementMode = 0;
     ballShapeMode = 0;
     applyThreshold = true;
-    blur = false;
     invertAlpha = false;
     blackBackground = false;
     randomColor = false;
 
-    nBalls = 100;
+    nBalls = 99;
     nSteps = 6;
     thresh = .1;
     vMax = 3;
@@ -264,8 +270,10 @@ class Rorschach {
   }
   
   void generateImage(){
+    generatingImage = true;
     if(ballShapeMode == 0)
       generateCircleImage();
+    generatingImage = false;
   }
 
 

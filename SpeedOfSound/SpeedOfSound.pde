@@ -90,7 +90,7 @@ void setup()
   beat = new BeatDetect(song.bufferSize(), song.sampleRate());
   // make a new beat listener, so that we won't miss any buffers for the analysis
   bl = new BeatListener(beat, song);
-  beat.setSensitivity(400);
+  beat.setSensitivity(100);
  
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
@@ -105,7 +105,8 @@ void setup()
   bgArtist.init(sosMovie);
 
   pArtist = new PointArtist();
-  pMotion = null; //new PointMotion();
+  pMotion = new PointMotion();
+  pMotion.jumpDistance = 20;
 
   // // WITH waveformoverlay
   // oArtists = new OverlayArtist[2];
@@ -121,12 +122,13 @@ void setup()
 
   // Create LemurPoint objects
   createLemurPoints();
+  
+  osc.setAll(); // Set everything to its init point
 }
 
 void draw()
 {
   
-  gl.glEnable(GL.GL_LINE_SMOOTH);
   background(0);
   if (useRorschach) { // Simple switch. Use Rorschach or PointArtist
     rOffscreen.beginDraw(); // Begin drawing offscreen
@@ -148,7 +150,7 @@ void draw()
   gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
   bgArtist.paint(); // Movie rendered on white regions of screen
     
-  if (pMotion != null) {
+  if (pMotion != null && !useRorschach) {
 	  pMotion.move(pointSets[currentPreset]);
 	  osc.sendPointsToOSC(pointSets[currentPreset]);  
   }
@@ -170,64 +172,6 @@ void stop()
   minim.stop();
   // this closes the sketch
   super.stop();
-}
-
-void keyPressed() {
-  OscMessage m;
-  switch(key) {
-      // connect/disconnect don't mean anything... can be ignored.
-    case('c'):
-      /* connect to the broadcaster */
-      m = new OscMessage("/server/connect",new Object[0]);
-      osc.oscP5.flush(m,osc.oscDestination);  
-      break;
-    case('d'):
-      /* disconnect from the broadcaster */
-      m = new OscMessage("/server/disconnect",new Object[0]);
-      osc.oscP5.flush(m,osc.oscDestination);  
-      break;
-    case('p'):
-      /* send points to OSC */
-      osc.sendPointsToOSC(pointSets[currentPreset]);  
-      break;
-    case('q'):
-      /* change point artist */
-      pArtist = new PointArtist();
-      break;
-    case('r'):
-      useRorschach = !useRorschach;
-      break;
-    case('t'):
-      applyThreshold = !applyThreshold;
-      break;
-    case('1'):
-      rorschachLayer.movementMode = 0;
-      break;
-    case('2'):
-      rorschachLayer.movementMode = 1;
-      break;
-    case('3'):
-      rorschachLayer.movementMode = 2;
-      break;
-    case('4'):
-      rorschachLayer.movementMode = 3;
-      break;
-    case('5'):
-      rorschachLayer.movementMode = 4;
-      break;
-    case('m'):
-      /* jump to a random place in the movie if it's being used as a background */
-      // sosMovie.jump(random(sosMovie.duration()));
-      //sosMovie.loop();
-      ((MovieBackgroundArtist)bgArtist).init(sosMovie);
-      //sosMovie.stop();
-      break;
-    case('n'):
-      currentPreset +=1;
-      if (currentPreset >= numPointSets) currentPreset = 0;
-      osc.connectToPoints(pointSets[currentPreset]);
-      break;    
-  }  
 }
 
 void createLemurPoints() {
@@ -261,9 +205,6 @@ void createLemurPoints() {
       osc.changePreset(0);
     }
     else if (j == 1) {
-      pMotion = new PointMotion();
-      pMotion.mode = 2;
-      pMotion.jumpDistance = 20;
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
         a = i + 1;

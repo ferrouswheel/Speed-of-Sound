@@ -22,6 +22,17 @@ class OSCConnection {
         oscDestination = new NetAddress(server,port);
     }
 
+    void setAll() { // Fired on app init. Sets the Lemur controls to init start values
+      sendPointsToOSC(pointSets[currentPreset]);
+      sendNumPointsToOSC();
+      resetRorschachOSC();
+      sendRorschachToggle();
+      sendRorschachRadius();
+      sendRorschachMode();
+      sendMovementMode();
+      sendPointArtistRange();
+    }
+
     void sendPointsToOSC(LemurPoint[] points) {
         /* Update lemur with the new points.. important for visualisation that
          * move the points around (but lemur physics should be turned off)
@@ -88,14 +99,81 @@ class OSCConnection {
       oscP5.send(numOscMessage, oscDestination);
     }
     
+    void resetRorschachOSC() { // Set all the Lemur controls to current values.      
+      OscMessage ballsOsc = new OscMessage("/NumRorschachBalls/" + "x");
+      float num = rorschachLayer.nBalls;
+      ballsOsc.add(num);
+      
+      oscP5.send(ballsOsc, oscDestination);      
+    }
+    
+    void sendRorschachToggle() { // Set all the Lemur controls to current values.      
+      OscMessage toggleOsc = new OscMessage("/RorschachToggle/x");
+      if (useRorschach) {
+        toggleOsc.add(1.0);
+      } else {
+        toggleOsc.add(0.0);
+      }
+      oscP5.send(toggleOsc, oscDestination);      
+    }
+    
+    void sendRorschachRadius() {
+      OscMessage radiusOsc = new OscMessage("/BlobSize/x");
+      float rad = rorschachLayer.radius;
+      radiusOsc.add(rad);
+      oscP5.send(radiusOsc, oscDestination);
+      while(true) {
+        if (!rorschachLayer.generatingImage) {
+          rorschachLayer.generateImage();
+          break;
+        }
+      }
+    }
+    
+    void sendRorschachMode() {
+      OscMessage radiusOsc = new OscMessage("/BlobMoveMode/x");
+      float[] vec = new float[8];
+      for (int i = 0; i < 8; i++) {
+        if (i == rorschachLayer.movementMode) {
+          vec[i] = 1.0;
+        } else {
+          vec[i] = 0.0;
+        }
+      }
+      radiusOsc.add(vec);
+      oscP5.send(radiusOsc, oscDestination);
+    }
+    
+    void sendMovementMode() {
+      OscMessage radiusOsc = new OscMessage("/MovementMode/x");
+      float[] vec = new float[10];
+      for (int i = 0; i < 10; i++) {
+        if (i == pMotion.mode) {
+          vec[i] = 1.0;
+        } else {
+          vec[i] = 0.0;
+        }
+      }
+      radiusOsc.add(vec);
+      oscP5.send(radiusOsc, oscDestination);
+    }
+    
+    void sendPointArtistRange() {
+      OscMessage toggleOsc = new OscMessage("/SizeRange/x");
+      float[] vec = new float[2];
+      vec[0] = pArtist.minSize / 10;
+      vec[1] = pArtist.beatSize / 10;
+      toggleOsc.add(vec);
+      oscP5.send(toggleOsc, oscDestination);      
+    }
 
     void handleMessage(OscMessage theOscMessage) {
         String path = theOscMessage.addrPattern();
         /* get and print the address pattern and the typetag of the received OscMessage */
-        println("SOS received an osc message with addrpattern "+path+" and typetag "+theOscMessage.typetag());
+        // println("SOS received an osc message with addrpattern "+path+" and typetag "+theOscMessage.typetag());
         theOscMessage.print();
         String elements[] = path.split("/");
-        println(elements);
+        // println(elements);
         if (elements[1].equals("points")) {
             //int pIndex = Integer.parseInt(path.substring(6,path.indexOf("/",6)));
             if (elements[2].equals("x")) {
@@ -124,6 +202,7 @@ class OSCConnection {
             changePreset(pIndex);
         } else if (elements[1].equals("NumPoints")) {
           int numPoints = int(round(theOscMessage.get(0).floatValue()));
+          println("NUM POINTS =======" + numPoints);
           for (int i = 0; i < pointSets[currentPreset].length; i++) {
             if (i >= numPoints) {
               pointSets[currentPreset][i].active = false;
@@ -163,11 +242,42 @@ class OSCConnection {
           }
         } else if (elements[1].equals("ResetRorschach")) {
           rorschachLayer.resetParams();
+          setAll();
         } else if (elements[1].equals("SizeRange")) {
           int bottom = int(round(theOscMessage.get(0).floatValue()));
           int top = int(round(theOscMessage.get(1).floatValue()));
           pArtist.beatSize = top * 10;
           pArtist.minSize = bottom * 10;
+        } else if (elements[1].equals("NumRorschachBalls")) {
+          rorschachLayer.nBalls =  int(round(theOscMessage.get(0).floatValue()));;
+        } else if (elements[1].equals("BlobMoveMode")) {
+          int modeCount = theOscMessage.typetag().length();
+          int mIndex = 0;
+          for (int i = 0; i < modeCount; i++) {
+            float x = theOscMessage.get(i).floatValue();
+            if (x == 1.0) {
+              mIndex = i; break;
+            }
+          }
+          rorschachLayer.movementMode = mIndex;
+        } else if (elements[1].equals("BlobSize")) {
+          while(true) {
+            if (!rorschachLayer.generatingImage) {
+              rorschachLayer.radius = int(round(theOscMessage.get(0).floatValue()));
+              rorschachLayer.generateImage();
+              break;
+            }
+          }
+        } else if (elements[1].equals("MovementMode")) {          
+          int motionCount = theOscMessage.typetag().length();
+          int mIndex = 0;
+          for (int i = 0; i < motionCount; i++) {
+            float x = theOscMessage.get(i).floatValue();
+            if (x == 1.0) {
+              mIndex = i; break;
+            }
+          }
+          pMotion.mode = mIndex;
         }
     }
 
