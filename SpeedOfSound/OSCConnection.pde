@@ -53,19 +53,24 @@ class OSCConnection {
         //for (LemurPoint p : points) {
         for (int i = 0; i < points.length; i++) {
             LemurPoint p = points[i];
-            xs[i] = (float) p.x / width;
-            ys[i] = 1.0 - (float) p.y / height;
+            xs[i] = constrain((float) p.x / width, 0.0, 1.0);
+            ys[i] = constrain(1.0 - (float) p.y / height, 0.0, 1.0);
         }
         /* add a value to the OscMessage */
         xOscMessage.add(xs);
         yOscMessage.add(ys);
         /* send the OscMessage to a remote location */
+        //xOscMessage.print();
+        //print(Arrays.toString(xs));
+        //yOscMessage.print();
+        //print(Arrays.toString(ys));
         oscP5.send(xOscMessage, oscDestination);
         oscP5.send(yOscMessage, oscDestination);
     }
 
     void connectToPoints(LemurPoint[] points) {
         this.points = points;
+        pMotion.notifyPointsUpdated(points);
         osc.sendPointsToOSC(points);  
     }
 
@@ -73,12 +78,14 @@ class OSCConnection {
         if (points != null && i < points.length) {
             points[i].x = (int) (x * width);
         }
+        pMotion.notifyPointsUpdated(points);
     }
 
     void updateY(int i, float y) {
         if (points != null && i < points.length) {
             points[i].y = (int) ( (1.0 - y) * height);
         }
+        pMotion.notifyPointsUpdated(points);
     }
     
     void changePreset(int p) {
@@ -188,7 +195,7 @@ class OSCConnection {
         String path = theOscMessage.addrPattern();
         /* get and print the address pattern and the typetag of the received OscMessage */
         // println("SOS received an osc message with addrpattern "+path+" and typetag "+theOscMessage.typetag());
-        theOscMessage.print();
+        //theOscMessage.print();
         String elements[] = path.split("/");
         // println(elements);
         if (elements[1].equals("points")) {
@@ -256,6 +263,12 @@ class OSCConnection {
           sendRorschachToggle();
         } else if (elements[1].equals("ResetRorschach")) {
           rorschachLayer.resetParams();
+          while(true) {
+            if (!rorschachLayer.generatingImage) {
+              rorschachLayer.generateImage();
+              break;
+            }
+          }
           setAll();
         } else if (elements[1].equals("SizeRange")) {
           int bottom = int(round(theOscMessage.get(0).floatValue()));
@@ -291,7 +304,7 @@ class OSCConnection {
               mIndex = i; break;
             }
           }
-          pMotion.mode = mIndex;
+          pMotion.setMode(mIndex);
         } else if (elements[1].equals("JumpDistance")) {
           pMotion.jumpDistance = int(round(theOscMessage.get(0).floatValue()));
         } else if (elements[1].equals("BeatIncrement")) {

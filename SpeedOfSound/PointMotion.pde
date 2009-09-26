@@ -3,12 +3,46 @@ class PointMotion {
     int jumpDistance;
     boolean isGoingLeft = false; // Switch this to bounce left and right
     int cumulativeIncrement = 0; // Track how far the ball has moved from init
+    
+    // For gravityMove
+    boolean gravityOn = false;
+    float[][] pointBuffer;
+    float gProportion = 1.0;
+    
     int mode = 0; // Mode. 
     // 0 = off. 
     // 1 = Crawl around screen.
     // 2 = bounce left/right 
     
-    PointMotion() {}
+    PointMotion() {
+      
+      
+    }
+
+    void setMode(int m) {
+       mode = m;
+    }
+     
+    // This should be called when something other than the PointMotion object
+    // changes the point positions.
+    void notifyPointsUpdated(LemurPoint[] points) {
+      if (pointBuffer == null) {
+        pointBuffer = new float[points.length][2];
+      for (int i = 0; i < points.length; i++) {
+          pointBuffer[i][0] = points[i].x;
+          pointBuffer[i][1] = points[i].y;
+      }
+      }
+       isGoingLeft = false;
+       cumulativeIncrement = 0;
+       gravityOn = false;
+       gProportion = 1.0;
+       for (int i = 0; i < points.length; i++) {
+            pointBuffer[i][0] = points[i].x;
+            pointBuffer[i][1] = points[i].y;
+       }
+    }
+       
 
     void move(LemurPoint[] points) {
       if (mode == 1) {
@@ -21,6 +55,9 @@ class PointMotion {
         }
       } else if (mode == 3) {
         swirlPoints(points);
+      } else if (mode == 4) {
+        
+        gravityPoints(points);
       } else {
         // No movement if exceed bounds
       }
@@ -57,23 +94,61 @@ class PointMotion {
     }
 
     void swirlPoints(LemurPoint[] points) {
-      int radius = pArtist.minSize / 2;
       float rSquared = 0;
       float theta = 0;
-      float vel0 = max(width,height)/150;
-      float vel = vel0+0;
+      float maxdim = max(width,height);
+      float vel0 = PI / 50.0; // In radians
+      float vel = 0;
+      float half_width = (float) width / 2.0;
+      float half_height = (float) height / 2.0;
       for(int i = 0; i < points.length; i++){
-        rSquared = (points[i].x-width/2)*(points[i].x-width/2)+
-                   (points[i].y-height/2)*(points[i].y-height/2);
-        theta = atan2(points[i].y-height/2,points[i].x-width/2);
+        rSquared = (points[i].x - half_width) * (points[i].x - half_width) +
+                   (points[i].y - half_height) * (points[i].y - half_height);
+        theta = atan2(points[i].y - half_height, points[i].x - half_width);
 
-        if(rSquared > max(width+radius,height+radius)*max(width+radius,height+radius)*.25){
+// What does the if statement do?
+/*        if(rSquared > (maxdim + radius) * (maxdim + radius) * .25){
             points[i].x = int(round(random(radius,width-radius)));
             points[i].y = int(round(random(radius,height-radius)));
-           }
-        vel = vel0*(1-rSquared/(width*width/(40)));
-        points[i].x+= vel*cos(theta+PI/2);
-        points[i].y+= vel*sin(theta+PI/2);
+           }*/
+        vel = vel0 + (sqrt(rSquared) / width) / 100.0;
+        theta += vel;
+        points[i].x = (int) (sqrt(rSquared) * cos(theta) + half_width);
+        points[i].y = (int) (sqrt(rSquared) * sin(theta) + half_height);
       }
     }
+    
+    void gravityPoints(LemurPoint[] points) {
+      float r = 0;
+      float theta = 0;
+      float half_width = (float) width / 2.0;
+      float half_height = (float) height / 2.0;
+      LemurPoint lp;
+      float r_delta = 0.0;
+      jumpDistance=10;
+      for(int i = 0; i < points.length; i++){
+        lp = points[i];
+        if (!lp.active) return; // do nothing is not being used
+        if (lp.detected() && !gravityOn) {
+            gravityOn = true;
+        }
+        if (gravityOn) {
+            if (gProportion > 0.5) {
+                gProportion -= 0.05;
+            } else {
+              gravityOn = false;
+            }
+        } else {
+            if (gProportion < 1.0) {
+              gProportion += 0.05;
+            } else {
+              gProportion = 1.0;
+            }
+        }
+        points[i].x = (int) ((pointBuffer[i][0] - half_width) * gProportion + half_width);
+        points[i].y = (int) ((pointBuffer[i][1] - half_height) * gProportion + half_height);
+             
+      }
+    }
+
 }

@@ -10,7 +10,10 @@ class PointArtist {
     void paint(LemurPoint[] points) {
         fill(0);
         rect(0, 0, width, height);
+//        fill(255);
+//        ellipse(5, 5, 10, 10);
         fill(255);
+//        ellipse(width/2.0, height/2.0, 10, 10);
         noStroke();
         for (int i = 0; i < 10; i++) {
             drawPointOutline(points[i]);

@@ -19,6 +19,21 @@ import ddf.minim.analysis.*;
 
 import oscP5.*;
 
+/**
+
+Known bugs:
+
+Lemur sometimes stop responding to multiball updates for where the points are. Appears to be on the Lemur side,
+and for now, the easiest fix is to restart the Lemur (everything else still works, it's just the point updates
+on the Lemur that don't work).
+
+Roscharch image corruption - sometimes the ball image doesn't paint correctly. Joel debugged the generateCircleImage
+method, and it seems to be creating the image correctly when the contents of the image are printed to stdout.
+Don't know where the corruption is occurring :-(
+
+*/
+
+
 // Config:
 // IP of the Lemur, Lemur should also be set up to send to the local IP on port 12000
 String lemurIP = "10.9.8.172";

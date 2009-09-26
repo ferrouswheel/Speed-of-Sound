@@ -283,7 +283,7 @@ class Rorschach {
     ballImage = createImage(radius*2,radius*2,ARGB);
     color thisColor = color(0,0,0,0);
     float rSquared = 0;
-    for(int x= 0; x<=radius; x++)
+    for(int x= 0; x<=radius; x++) {
       for(int y= 0; y<=radius; y++){
         rSquared = pow(x-radius,2)+pow(y-radius,2);
         if(rSquared<radius*radius){
@@ -296,9 +296,10 @@ class Rorschach {
           ballImage.set(2*radius-x,2*radius-y,thisColor);
           ballImage.set(x,2*radius-y,thisColor);
         }
-        else
+        else {
           ballImage.set(x,y,color(0,0,0,0));
+        }
       }
+    }
   }
-
 }

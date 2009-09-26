@@ -74,7 +74,9 @@ class MovieBackgroundArtist extends BackgroundArtist {
 
     void paint() {
       if (beat.isKick()) {
-        //sosMovie.setCurrentTime(sosMovie.getCurrentTime() - 0.5);
+        // JMC
+        //m.setCurrentTime(sosMovie.getCurrentTime() - 0.5);
+        m.jump(m.duration() - 0.5);
       }
       
       // JMC:
