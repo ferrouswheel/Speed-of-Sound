@@ -136,7 +136,6 @@ class Rorschach {
         theta = atan2(balls[i][1]-height/2,balls[i][0]-width/2);
 
         if(rSquared > max(width+radius,height+radius)*max(width+radius,height+radius)*.25){
-          println("escape");
             balls[i][0] = random(radius,width-radius);
             balls[i][1] = random(radius,height-radius);
             balls[i][2] = 0;

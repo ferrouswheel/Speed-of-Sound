@@ -19,6 +19,24 @@ import ddf.minim.analysis.*;
 
 import oscP5.*;
 
+// Config:
+// IP of the Lemur, Lemur should also be set up to send to the local IP on port 12000
+String lemurIP = "10.9.8.172";
+// This hasn't been implemented yet, but Will should put all JMC stuff in a separate BackgroundArtist
+// and choose the BG artist based on this variable.
+Boolean useJMC = false;
+// Videos to use for movie background
+// Videos should be of a small size... 180 by 144 or something similar, otherwise framerate gets killed
+// This might not be the case with JMC video, but I'm not sure...
+String[] vids = new String[]{"carnival_faces_small.avi","station.mov", "carnival_motion_small.avi", "spin_lights2_small.avi",
+      "spining1_small.avi", "spin_lights3_small.avi", "lights_spin3_small.avi", "carnival2_small.avi","fox_small.avi",
+      "rollercoaster_small.avi", "spin_lights1_small.avi", "carnival_faces_small.avi",
+      "crowd_lights1_small.avi"};
+// Gifs to use for GIF background
+// TODO
+// Images to use for image backgroun
+// TODO
+
 GL gl;
 
 Minim minim;
@@ -49,18 +67,15 @@ int numPointSets = 14;
 int currentPreset = 0;
 LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
 
-JMCMovieGL sosMovie;
-String[] vids = new String[]{"station.mov", "carnival2.mov","fox.mov"};
-int vidNum = 0;
-
-Boolean applyThreshold = true;
 Boolean useRorschach = false;
+// These should be in the rorshcach layer class...
+Boolean applyThreshold = true;
 float thresh = 0.1;
 Rorschach rorschachLayer; // An alternative to the PointArtist layer.
+
 GLGraphicsOffScreen rOffscreen;  // Used to store the Rorschach so we can apply pixel filters
 GLTexture texDest; // Used as a destination for pixel-filtered offscreen graphics.
 GLTextureFilter threshhold; // This links to the Threshhold filter used by Rorschach
-// Movie sosMovie;
 
 void setup()
 {
@@ -73,15 +88,15 @@ void setup()
   // Processing seems to force 2x smooth if it's not explicitly disabled
   hint(DISABLE_OPENGL_2X_SMOOTH);
   hint(ENABLE_OPENGL_4X_SMOOTH);
-  gl = (( PGraphicsOpenGL )g).gl;
+  GL gl = (( PGraphicsOpenGL )g).gl;
   gl.glEnable(GL.GL_LINE_SMOOTH);
   frameRate(60);
-  frame.setResizable(true);
+  //frame.setResizable(true);
   smooth();
   colorMode(HSB);
   
   minim = new Minim(this);
-  osc = new OSCConnection(this,"192.168.0.2",8000);
+  osc = new OSCConnection(this,lemurIP,8000);
   song = minim.getLineIn(Minim.STEREO, 512);
 
   // a beat detection object that is FREQ_ENERGY mode that 
@@ -98,11 +113,8 @@ void setup()
   // TODO ensure all artists are created via the factory methods (e.g.
   // createBackgroundArtist() )
 
-  // sosMovie = new Movie(this, "carnival2.mov");
-  sosMovie = movieFromDataPath("fox.mov"); // JMC
-  sosMovie.loop();
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
-  bgArtist.init(sosMovie);
+  bgArtist.init(vids);
 
   pArtist = new PointArtist();
   pMotion = new PointMotion();
@@ -130,6 +142,8 @@ void draw()
 {
   
   background(0);
+  PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
+  GL gl = pgl.gl;
   if (useRorschach) { // Simple switch. Use Rorschach or PointArtist
     rOffscreen.beginDraw(); // Begin drawing offscreen
     gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
@@ -190,8 +204,7 @@ void createLemurPoints() {
             gridCoords[tempIndex][0] = (x * xincrement) + (xincrement / 2);
             gridCoords[tempIndex][1] = (y * yincrement) + (yincrement / 2);
             tempIndex ++;
-            print(x);
-          }
+           }
         }
       }
       for (int i = 0; i < 10; i++) {
@@ -243,8 +256,7 @@ void oscEvent(OscMessage theOscMessage) {
     osc.handleMessage(theOscMessage);
 }
 
-
-
+/* // TODO: move all this into the JMC BackgroundArtist
 JMCMovieGL movieFromDataPath(String filename)
 {
   return new JMCMovieGL(this, filename, RGB);
@@ -270,3 +282,4 @@ JMCMovieGL movieFromURL(String urlname)
 
   return new JMCMovieGL(this, url, RGB);
 }
+*/

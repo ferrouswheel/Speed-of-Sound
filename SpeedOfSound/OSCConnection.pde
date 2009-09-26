@@ -7,12 +7,15 @@ class OSCConnection {
     /* a NetAddress contains the ip address and port number of a remote location in the network. */
     public NetAddress oscDestination; 
     LemurPoint[] points;
+    Object parent;
 
     OSCConnection (Object theParent, String server, int port) {
         /* create a new instance of oscP5. 
         * 12000 is the port number you are listening for incoming osc messages.
         */
         oscP5 = new OscP5(theParent,12000);
+        
+        parent = theParent;
 
         /* create a new NetAddress. a NetAddress is used when sending osc messages
         * with the oscP5.send method.
@@ -233,19 +236,15 @@ class OSCConnection {
               bIndex = i; break;
             }
           }
-          if (bIndex < vids.length) {
-            sosMovie.switchVideo(vids[bIndex]);
-            sosMovie.loop();
-          } else {
-            sosMovie.switchVideo(vids[0]); // Revert to default video
-            sosMovie.loop();
-          }
+          bgArtist.setCurrentSource(bIndex);
         } else if (elements[1].equals("VideoSpeed")) {
           int speed = int(round(theOscMessage.get(0).floatValue()));
           if (speed == 1) {
-            sosMovie.setRate(speed);
+            //sosMovie.setRate(speed);
+            bgArtist.setSpeed(speed);
           } else {
-            sosMovie.setRate(speed * 2);
+            //sosMovie.setRate(speed * 2);
+            bgArtist.setSpeed(speed * 2);
           }
         } else if (elements[1].equals("RorschachToggle")) {
           int bool = int(round(theOscMessage.get(0).floatValue()));
