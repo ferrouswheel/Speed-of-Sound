@@ -24,18 +24,20 @@ class PointMotion {
 
     void setMode(int m) {
        mode = m;
+       LemurPoint[] points = pointSets[currentPreset];
+       // Update point locations in the buffer
+       for (int i = 0; i < points.length; i++) {
+            pointBuffer[i][0] = points[i].x;
+            pointBuffer[i][1] = points[i].y;
+       }
     }
      
     // This should be called when something other than the PointMotion object
     // changes the point positions.
     void notifyPointsUpdated(LemurPoint[] points) {
-      if (pointBuffer == null) {
+       if (pointBuffer == null) {
         pointBuffer = new float[points.length][2];
-      for (int i = 0; i < points.length; i++) {
-          pointBuffer[i][0] = points[i].x;
-          pointBuffer[i][1] = points[i].y;
-      }
-      }
+       }
        isGoingLeft = false;
        cumulativeIncrement = 0;
        gravityOn = false;
