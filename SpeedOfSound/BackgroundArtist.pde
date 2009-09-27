@@ -93,7 +93,7 @@ class ImageBackgroundArtist extends BackgroundArtist {
   PImage[] images;
   int currentImage;
   
-  void ImageBackgroundArtist() {
+  ImageBackgroundArtist() {
     init();
   }
 
@@ -103,6 +103,28 @@ class ImageBackgroundArtist extends BackgroundArtist {
   
   void paint() {
     // image(currentImage, 0, 0);
+  }
+}
+
+class CamBackgroundArtist extends BackgroundArtist {
+  Capture cam;
+  String device;
+  boolean active = false;
+  
+  CamBackgroundArtist(Object parent, String deviceName) {
+    device = deviceName;
+    cam = new Capture((PApplet) parent, 320, 240, device);
+  }
+
+  void init() {
+  }
+  
+  void paint() {
+    if (!active) return;
+    if (cam.available() == true) {
+       cam.read();
+    }
+    image(cam, 0, 0, width, height);
   }
 }
 

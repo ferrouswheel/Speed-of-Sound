@@ -2,7 +2,7 @@ class PointMotion {
     // TODO: The different motion modes should all be separate classes
     // inheriting from PointMotion!
   
-    int jumpDistance;
+    int jumpDistance = 20;
     boolean isGoingLeft = false; // Switch this to bounce left and right
     int cumulativeIncrement = 0; // Track how far the ball has moved from init
     
@@ -18,7 +18,6 @@ class PointMotion {
     // 2 = bounce left/right 
     
     PointMotion() {
-      
       
     }
 

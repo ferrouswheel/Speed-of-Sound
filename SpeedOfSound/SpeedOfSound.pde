@@ -54,6 +54,11 @@ String[] vids = new String[]{"carnival_faces_small.avi", "carnival_motion_small.
 // TODO
 // Images to use for image backgroun
 // TODO
+// List of camera devices to use.
+String[] cameraNames = new String[] {
+  //"AVerMedia 716x BDA Analog Capture-WDM", // For tv card input of handycam
+  "Logitech QuickCam Express/Go-WDM" // For cheap webcam
+};
 
 GL gl;
 
@@ -68,6 +73,9 @@ OSCConnection osc;
 // The BackgroundArtist is called first, it optionally clears the canvas and
 // then sets the background... blank/movie frame/image/whatever.
 BackgroundArtist bgArtist;
+
+CamBackgroundArtist[] cameras;
+//= new CamBackgroundArtist[2];
 
 // PointMotion is used to set the point locations, after it updates, it will
 // also update the lemur points via OSC (think the Simian mobile disco vid where
@@ -94,8 +102,6 @@ Rorschach rorschachLayer; // An alternative to the PointArtist layer.
 GLGraphicsOffScreen rOffscreen;  // Used to store the Rorschach so we can apply pixel filters
 GLTexture texDest; // Used as a destination for pixel-filtered offscreen graphics.
 GLTextureFilter threshhold; // This links to the Threshhold filter used by Rorschach
-Capture cam1;
-Capture cam2;
 
 void setup()
 {
@@ -131,10 +137,6 @@ void setup()
  
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
-
-  
-  cam1 = new Capture(this, 320, 240, devices[0]);
-  //cam2 = new Capture(this, 320, 240, devices[5]);
   
   // TODO ensure all artists are created via the factory methods (e.g.
   // createBackgroundArtist() )
@@ -142,9 +144,16 @@ void setup()
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
   bgArtist.init(vids);
 
+  // Initialise cameras
+  cameras = new CamBackgroundArtist[cameraNames.length];
+  for (int i = 0; i < cameras.length; i++) {
+    cameras[i] = new CamBackgroundArtist(this, cameraNames[i]);
+    cameras[i].active = true;
+  }
+  
+  // Initialise point artist
   pArtist = new PointArtist();
   pMotion = new PointMotion();
-  pMotion.jumpDistance = 20;
 
   // // WITH waveformoverlay
   // oArtists = new OverlayArtist[2];
@@ -166,7 +175,6 @@ void setup()
 
 void draw()
 {
-  
   background(0);
   PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
   GL gl = pgl.gl;
@@ -189,16 +197,10 @@ void draw()
   gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
   gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
   bgArtist.paint(); // Movie rendered on white regions of screen
-  
-  //if (cam1.available() == true) {
-  //  cam1.read();
-  //}
-  //image(cam1, 0, 0, width, height);
-  //if (cam2.available() == true) {
-  //  cam2.read();
-  //}
-  //image(cam2, 0, 0, width, height);
 
+  for (int i = 0; i < cameras.length; i++) {
+    if (cameras[i].active) cameras[i].paint();
+  }
     
   if (pMotion != null && !useRorschach) {
 	  pMotion.move(pointSets[currentPreset]);
