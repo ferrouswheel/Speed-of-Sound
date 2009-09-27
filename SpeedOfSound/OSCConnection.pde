@@ -25,7 +25,10 @@ class OSCConnection {
         oscDestination = new NetAddress(server,port);
     }
 
-    void setAll() { // Fired on app init. Sets the Lemur controls to init start values
+    void setAll() {
+      // Fired on app init. Sets the Lemur controls to init start values
+      // TODO: move each of these to their respective class and call a sendToLemur() command
+      // within each that passes the OSCConnection object.
       sendPointsToOSC(pointSets[currentPreset]);
       sendNumPointsToOSC();
       resetRorschachOSC();
@@ -35,7 +38,8 @@ class OSCConnection {
       sendRorschachMode();
       sendMovementMode();
       sendPointArtistRange();
-      setMoveJumpDistance();
+      sendMoveJumpDistance();
+      sendGravityProportion();
     }
 
     void sendPointsToOSC(LemurPoint[] points) {
@@ -185,10 +189,16 @@ class OSCConnection {
       oscP5.send(toggleOsc, oscDestination);      
     }
     
-    void setMoveJumpDistance() {      
-      OscMessage jumpOsc = new OscMessage("/JumpDistance/x");
+    void sendMoveJumpDistance() {      
+      OscMessage jumpOsc = new OscMessage("/PointMotion/JumpDistance/x");
       jumpOsc.add(float(pMotion.jumpDistance));
       oscP5.send(jumpOsc, oscDestination);
+    }
+
+    void sendGravityProportion() {      
+      OscMessage gOsc = new OscMessage("/PointMotion/GravityAmount/x");
+      gOsc.add(pMotion.gProportion);
+      oscP5.send(gOsc, oscDestination);
     }
 
     void handleMessage(OscMessage theOscMessage) {
@@ -305,8 +315,12 @@ class OSCConnection {
             }
           }
           pMotion.setMode(mIndex);
-        } else if (elements[1].equals("JumpDistance")) {
-          pMotion.jumpDistance = int(round(theOscMessage.get(0).floatValue()));
+        } else if (elements[1].equals("PointMotion")) {
+          if (elements[2].equals("JumpDistance")) {
+            pMotion.jumpDistance = int(round(theOscMessage.get(0).floatValue()));
+          } else if (elements[2].equals("GravityAmount")) {
+            pMotion.gProportion = theOscMessage.get(0).floatValue();
+          }
         } else if (elements[1].equals("BeatIncrement")) {
           rorschachLayer.speedUp = int(round(theOscMessage.get(0).floatValue()));
           println(rorschachLayer.speedUp + "  WHEEEEEEE");

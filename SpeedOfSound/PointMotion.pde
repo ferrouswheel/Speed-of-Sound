@@ -1,5 +1,7 @@
 class PointMotion {
-
+    // TODO: The different motion modes should all be separate classes
+    // inheriting from PointMotion!
+  
     int jumpDistance;
     boolean isGoingLeft = false; // Switch this to bounce left and right
     int cumulativeIncrement = 0; // Track how far the ball has moved from init
@@ -7,7 +9,8 @@ class PointMotion {
     // For gravityMove
     boolean gravityOn = false;
     float[][] pointBuffer;
-    float gProportion = 1.0;
+    float gProportion = 0.5;
+    float gCurrentProportion = 1.0;
     
     int mode = 0; // Mode. 
     // 0 = off. 
@@ -36,7 +39,7 @@ class PointMotion {
        isGoingLeft = false;
        cumulativeIncrement = 0;
        gravityOn = false;
-       gProportion = 1.0;
+       gCurrentProportion = 1.0;
        for (int i = 0; i < points.length; i++) {
             pointBuffer[i][0] = points[i].x;
             pointBuffer[i][1] = points[i].y;
@@ -125,7 +128,9 @@ class PointMotion {
       float half_height = (float) height / 2.0;
       LemurPoint lp;
       float r_delta = 0.0;
-      jumpDistance=10;
+      float inc = 0.02;
+
+      
       for(int i = 0; i < points.length; i++){
         lp = points[i];
         if (!lp.active) return; // do nothing is not being used
@@ -133,20 +138,40 @@ class PointMotion {
             gravityOn = true;
         }
         if (gravityOn) {
-            if (gProportion > 0.5) {
-                gProportion -= 0.05;
+            // If gProportion is negative...
+            // (repulsion from center)
+            if (gProportion < 0) {
+              if (gCurrentProportion < 1.0 - gProportion) {
+                 gCurrentProportion += inc;
+              } else {
+                 gravityOn = false;
+              }
             } else {
-              gravityOn = false;
+              // If gProportion is positive
+              // (attraction to center)
+              if (gCurrentProportion > 1.0 - gProportion) {
+                 gCurrentProportion -= inc;
+              } else {
+                 gravityOn = false;
+              }
             }
         } else {
-            if (gProportion < 1.0) {
-              gProportion += 0.05;
+            if (gProportion < 0) {
+               if (gCurrentProportion > 1.0) {
+                 gCurrentProportion -= 0.05;
+               } else {
+                 gCurrentProportion = 1.0;
+               }
             } else {
-              gProportion = 1.0;
+               if (gCurrentProportion < 1.0) {
+                 gCurrentProportion += 0.05;
+               } else {
+                 gCurrentProportion = 1.0;
+               }
             }
         }
-        points[i].x = (int) ((pointBuffer[i][0] - half_width) * gProportion + half_width);
-        points[i].y = (int) ((pointBuffer[i][1] - half_height) * gProportion + half_height);
+        points[i].x = (int) ((pointBuffer[i][0] - half_width) * gCurrentProportion + half_width);
+        points[i].y = (int) ((pointBuffer[i][1] - half_height) * gCurrentProportion + half_height);
              
       }
     }

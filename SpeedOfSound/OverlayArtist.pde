@@ -19,7 +19,7 @@ class BlurOverlayArtist extends OverlayArtist {
     float n;
 
     BlurOverlayArtist() {
-        init(new Double(0.95));
+        init(new Double(0.90));
     }
     
     void init(Object o) {

@@ -43,10 +43,13 @@ Boolean useJMC = false;
 // Videos to use for movie background
 // Videos should be of a small size... 180 by 144 or something similar, otherwise framerate gets killed
 // This might not be the case with JMC video, but I'm not sure...
-String[] vids = new String[]{"carnival_faces_small.avi","station.mov", "carnival_motion_small.avi", "spin_lights2_small.avi",
-      "spining1_small.avi", "spin_lights3_small.avi", "lights_spin3_small.avi", "carnival2_small.avi","fox_small.avi",
+// TODO: Load this list of movies from the data directory
+String[] vids = new String[]{"carnival_faces_small.avi", "carnival_motion_small.avi", "spin_lights2_small.avi",
+      "spining1_small.avi", "spin_lights3_small.avi", "lights_spin3_small.avi", "carnival2_small.avi",
       "rollercoaster_small.avi", "spin_lights1_small.avi", "carnival_faces_small.avi",
-      "crowd_lights1_small.avi"};
+      "crowd_lights1_small.avi", "dancing_costume_small.avi", "lights_loop1_small.avi", "lights_loop2_small.avi", 
+    "lights_loop3_small.avi", "lights_loop4_small.avi", "lights_loop5_grid_small.avi", "lights_loop6_small.avi", 
+    "lights_loop7_small.avi", "lights_loop8_small.avi", "lights_loop9_small.avi", "lights_loop10_small.avi", "lights_loop11_small.avi", "machines_small.avi"};
 // Gifs to use for GIF background
 // TODO
 // Images to use for image backgroun
@@ -91,10 +94,12 @@ Rorschach rorschachLayer; // An alternative to the PointArtist layer.
 GLGraphicsOffScreen rOffscreen;  // Used to store the Rorschach so we can apply pixel filters
 GLTexture texDest; // Used as a destination for pixel-filtered offscreen graphics.
 GLTextureFilter threshhold; // This links to the Threshhold filter used by Rorschach
+Capture cam1;
+Capture cam2;
 
 void setup()
 {
-  size(640, 360, GLConstants.GLGRAPHICS);  
+  size(1024, 768, GLConstants.GLGRAPHICS);  
   rOffscreen = new GLGraphicsOffScreen(this, width, height); // Init the offscreen buffer
   texDest = new GLTexture(this, width, height); // Texture
   threshhold = new GLTextureFilter(this, "threshold.xml"); // And threshhold
@@ -109,6 +114,8 @@ void setup()
   //frame.setResizable(true);
   smooth();
   colorMode(HSB);
+  String[] devices = Capture.list();
+  println(devices);
   
   minim = new Minim(this);
   osc = new OSCConnection(this,lemurIP,8000);
@@ -125,6 +132,10 @@ void setup()
   textFont(createFont("SanSerif", 16));
   textAlign(CENTER);
 
+  
+  cam1 = new Capture(this, 320, 240, devices[0]);
+  //cam2 = new Capture(this, 320, 240, devices[5]);
+  
   // TODO ensure all artists are created via the factory methods (e.g.
   // createBackgroundArtist() )
 
@@ -178,6 +189,16 @@ void draw()
   gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
   gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
   bgArtist.paint(); // Movie rendered on white regions of screen
+  
+  //if (cam1.available() == true) {
+  //  cam1.read();
+  //}
+  //image(cam1, 0, 0, width, height);
+  //if (cam2.available() == true) {
+  //  cam2.read();
+  //}
+  //image(cam2, 0, 0, width, height);
+
     
   if (pMotion != null && !useRorschach) {
 	  pMotion.move(pointSets[currentPreset]);
