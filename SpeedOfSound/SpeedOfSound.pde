@@ -168,7 +168,7 @@ void setup()
   rorschachLayer = new Rorschach();
 
   // Create LemurPoint objects
-  createLemurPoints();
+  createLemurPoints(true);
   
   osc.setAll(); // Set everything to its init point
 }
@@ -226,7 +226,7 @@ void stop()
   super.stop();
 }
 
-void createLemurPoints() {
+void createLemurPoints (boolean booting) {
   int a = 0;
   for (int j = 0; j < numPointSets; j++) {
     if (j == 0) {
@@ -234,8 +234,7 @@ void createLemurPoints() {
       for (int i = 0; i < 10; i++) {
         pointSets[j][i] = new LemurPoint(beat, (width / 10 * i) + (width / 20), (height / 10 * i) + (height / 20), i);
       }
-      osc.sendNumPointsToOSC();
-      osc.changePreset(0);
+
     } else if (j == 1) {
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
@@ -246,8 +245,7 @@ void createLemurPoints() {
           pointSets[j][i] = new LemurPoint(beat, (width / 5 * ( i - 5)) + (width / 10), (height - revHeight), i);
         }
       }
-      osc.sendNumPointsToOSC();
-      osc.changePreset(0);
+
     } else if (j == 2) {
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
@@ -263,8 +261,7 @@ void createLemurPoints() {
           pointSets[j][i].active = false;
         }
       }
-      osc.sendNumPointsToOSC();
-      osc.changePreset(0);
+
     } else if (j == 3) {
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
@@ -273,8 +270,7 @@ void createLemurPoints() {
           pointSets[j][i].active = false;
         }
       }
-      osc.sendNumPointsToOSC();
-      osc.changePreset(0);
+
     } else if (j == 4) {
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
@@ -283,8 +279,7 @@ void createLemurPoints() {
         float y = (sin(angle) * 200) + (height / 2);
         pointSets[j][i] = new LemurPoint(beat, int(round(x)), int(round(y)), i);
       }
-      osc.sendNumPointsToOSC();
-      osc.changePreset(0);
+
     } else if (j == 5) {
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
@@ -292,7 +287,7 @@ void createLemurPoints() {
         pointSets[j][i].setBand(i*2, i*2 + 3, 2);
         
       }
-      osc.changePreset(0);
+
     } else if (j == 6) {
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
@@ -309,8 +304,7 @@ void createLemurPoints() {
         pointSets[j][i].setBand(i*2, i*2 + 3, 2);
         
       }
-      osc.sendNumPointsToOSC();
-      osc.changePreset(0);
+
     } else if (j == 7) {
       pointSets[j] = new LemurPoint[10];
       int xincrement = width / 3;
@@ -334,8 +328,6 @@ void createLemurPoints() {
           pointSets[j][i].active = false;
         }
       }
-      osc.sendNumPointsToOSC();
-      osc.changePreset(0);
     }
     else if (j == 8) {
       pointSets[j] = new LemurPoint[10];
@@ -357,7 +349,7 @@ void createLemurPoints() {
           pointSets[j][i].active = false;
         }
       }
-    } else { // OTHER
+    } else if (booting) { // OTHER
       pointSets[j] = new LemurPoint[10];
       for (int i = 0; i < 10; i++) {
         a = i + 1;

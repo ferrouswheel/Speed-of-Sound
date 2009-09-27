@@ -40,6 +40,7 @@ class OSCConnection {
       sendPointArtistRange();
       sendMoveJumpDistance();
       sendGravityProportion();
+      sendCameraOn();
     }
 
     void sendPointsToOSC(LemurPoint[] points) {
@@ -200,6 +201,20 @@ class OSCConnection {
       gOsc.add(pMotion.gProportion);
       oscP5.send(gOsc, oscDestination);
     }
+    
+    void sendCameraOn() {
+      OscMessage cOsc = new OscMessage("/Camera/On/x");
+      float[] vec = new float[cameras.length];
+      for (int i = 0; i < cameras.length; i++) {
+        if (cameras[i].active) {
+          vec[i] = 1.0;
+        }else {
+          vec[i] = 0.0; 
+        }
+      }
+      cOsc.add(vec);
+      oscP5.send(cOsc, oscDestination);
+    }
 
     void handleMessage(OscMessage theOscMessage) {
         String path = theOscMessage.addrPattern();
@@ -222,6 +237,9 @@ class OSCConnection {
                     float y = theOscMessage.get(i).floatValue();
                     updateY(i,y);
                 }
+            }
+            else if (elements[2].equals("reset")) {
+              createLemurPoints(false);
             }
         } else if (elements[1].equals("PointsPreset") &&
             elements[2].equals("x")) {
@@ -324,7 +342,21 @@ class OSCConnection {
         } else if (elements[1].equals("BeatIncrement")) {
           rorschachLayer.speedUp = int(round(theOscMessage.get(0).floatValue()));
           println(rorschachLayer.speedUp + "  WHEEEEEEE");
+        } else if (elements[1].equals("Camera")) {
+          if (elements[2].equals("On")) {
+            for (int i = 0; i < cameras.length; i++) {
+              float x = theOscMessage.get(i).floatValue();
+              if (x == 1.0) {
+                cameras[i].active = true;
+              } else {
+                cameras[i].active = false;
+              }
+            }
+            
+          }
         }
+
     }
+    
 
 }
