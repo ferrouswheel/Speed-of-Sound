@@ -3,6 +3,8 @@ class PointArtist {
     int beatSize = 40;
     int minSize = 0;
     float fadeProportion = 0.95;
+    // When automode is on, this automatically progresses to new backgrounds, presets, etc.
+    boolean autoMode = false;
         
     PointArtist() {
     }

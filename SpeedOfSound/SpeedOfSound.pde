@@ -56,8 +56,10 @@ String[] vids = new String[]{"carnival_faces_small.avi", "carnival_motion_small.
 // TODO
 // List of camera devices to use.
 String[] cameraNames = new String[] {
-  //"AVerMedia 716x BDA Analog Capture-WDM", // For tv card input of handycam
-  "Logitech QuickCam Express/Go-WDM" // For cheap webcam
+  //"AVerMedia 716x BDA Analog Capture-WDM", // For Joel's tv card input of handycam
+  //"Logitech QuickCam Express/Go-WDM", // For Joel's cheap webcam
+  "Laptop Integrated Webcam-WDM"
+
 };
 
 GL gl;
@@ -93,22 +95,20 @@ int numPointSets = 14;
 int currentPreset = 0;
 LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
 
-Boolean useRorschach = false;
-// These should be in the rorshcach layer class...
-Boolean applyThreshold = true;
-float thresh = 0.1;
-Rorschach rorschachLayer; // An alternative to the PointArtist layer.
+// When automode is on, this automatically progresses to new backgrounds, presets, etc.
+boolean autoMode = false;
+// No changes to a particular parameter will be made until this time.
+int minTimeBeforeSwitch = 1000;
+int presetTimer = 0;
+int motionTimer = 0;
+int backgroundTimer = 0;
 
-GLGraphicsOffScreen rOffscreen;  // Used to store the Rorschach so we can apply pixel filters
-GLTexture texDest; // Used as a destination for pixel-filtered offscreen graphics.
-GLTextureFilter threshhold; // This links to the Threshhold filter used by Rorschach
+Boolean useRorschach = false;
+Rorschach rorschachLayer; // An alternative to the PointArtist layer.
 
 void setup()
 {
   size(1024, 768, GLConstants.GLGRAPHICS);  
-  rOffscreen = new GLGraphicsOffScreen(this, width, height); // Init the offscreen buffer
-  texDest = new GLTexture(this, width, height); // Texture
-  threshhold = new GLTextureFilter(this, "threshold.xml"); // And threshhold
   // Fullscreen
   // size(screen.width, screen.height, GLConstants.GLGRAPHICS);
   // Processing seems to force 2x smooth if it's not explicitly disabled
@@ -148,7 +148,7 @@ void setup()
   cameras = new CamBackgroundArtist[cameraNames.length];
   for (int i = 0; i < cameras.length; i++) {
     cameras[i] = new CamBackgroundArtist(this, cameraNames[i]);
-    cameras[i].active = true;
+    //cameras[i].active = true;
   }
   
   // Initialise point artist
@@ -165,7 +165,7 @@ void setup()
   oArtists = new OverlayArtist[1];
   oArtists[0] = createOverlayArtist("BlurOverlayArtist");
   oArtists[0].init(new Double(0.50));
-  rorschachLayer = new Rorschach();
+  rorschachLayer = new Rorschach(this);
 
   // Create LemurPoint objects
   createLemurPoints(true);
@@ -178,18 +178,9 @@ void draw()
   background(0);
   PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
   GL gl = pgl.gl;
+  useRorschach = true;
   if (useRorschach) { // Simple switch. Use Rorschach or PointArtist
-    rOffscreen.beginDraw(); // Begin drawing offscreen
-    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
     rorschachLayer.paint();
-    gl.glDisable(GL.GL_BLEND);
-    rOffscreen.endDraw();
-    if (applyThreshold) { // Apply or not apply Threshhold filter
-      rOffscreen.getTexture().filter(threshhold, texDest);
-      image(texDest, 0, 0);
-    } else {
-      image(rOffscreen.getTexture(), 0, 0);
-    }
   } else {
     if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
   }
@@ -203,8 +194,8 @@ void draw()
   }
     
   if (pMotion != null && !useRorschach) {
-	  pMotion.move(pointSets[currentPreset]);
-	  osc.sendPointsToOSC(pointSets[currentPreset]);  
+    pMotion.move(pointSets[currentPreset]);
+    osc.sendPointsToOSC(pointSets[currentPreset]);  
   }
   for (int i = 0; i < oArtists.length; i++) {
     oArtists[i].paint();
@@ -214,6 +205,7 @@ void draw()
   
   // Display framerate
   text(frameRate, width-45, height-25);
+  gl.glDisable(GL.GL_BLEND); // Re-enable blending mode
 }
 
 void stop()

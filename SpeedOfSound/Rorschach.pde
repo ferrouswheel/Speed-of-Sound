@@ -8,7 +8,6 @@ class Rorschach {
   int ballShapeMode;
   int numBallShapes = 3;
   int movementMode;
-  boolean applyThreshold;
   boolean invertAlpha;
   boolean blackBackground;
   color backgroundColor;
@@ -21,15 +20,26 @@ class Rorschach {
   
   boolean generatingImage = false;
   
-  
-  Rorschach() {
+  // These should be in the rorshcach layer class...
+  boolean applyThreshold = true;
+  float thresh = 0.1;
+
+  GLGraphicsOffScreen rOffscreen;  // Used to store the Rorschach so we can apply pixel filters
+  GLTexture texDest; // Used as a destination for pixel-filtered offscreen graphics.
+  GLTextureFilter threshhold; // This links to the Threshhold filter used by Rorschach
+
+  Rorschach(PApplet parent) {
     init();
+    rOffscreen = new GLGraphicsOffScreen(parent, width, height); // Init the offscreen buffer
+    texDest = new GLTexture(parent, width, height); // Texture
+    threshhold = new GLTextureFilter(parent, "threshold.xml"); // And threshhold
   }
   
   void init() {
     resetParams();
     generateImage();
     generateBalls();
+    
   }
   
   void paint(){
@@ -40,7 +50,10 @@ class Rorschach {
         moveBalls();
       }
     }
-    
+
+    rOffscreen.beginDraw(); // Begin drawing offscreen
+
+    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);   
     rOffscreen.background(0);
     for(int i=0; i<nBalls; i++){
         // Render mirror-images of the balls
@@ -48,6 +61,13 @@ class Rorschach {
         rOffscreen.image(ballImage,balls[i][0]-radius,balls[i][1]-radius);
     }
     
+    rOffscreen.endDraw();
+    if (applyThreshold) { // Apply or not apply Threshhold filter
+      rOffscreen.getTexture().filter(threshhold, texDest);
+      image(texDest, 0, 0);
+    } else {
+      image(rOffscreen.getTexture(), 0, 0);
+    }
   }
   
   void resetParams(){

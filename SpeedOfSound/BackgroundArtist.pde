@@ -1,5 +1,6 @@
 class BackgroundArtist {
     color c;
+    
     BackgroundArtist() {
 	c = #000000;
     }
