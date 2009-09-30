@@ -3,13 +3,13 @@ class PointArtist {
     int beatSize = 40;
     int minSize = 0;
     float fadeProportion = 0.95;
-    // When automode is on, this automatically progresses to new backgrounds, presets, etc.
-    boolean autoMode = false;
+    boolean active = true;
         
     PointArtist() {
     }
 
     void paint(LemurPoint[] points) {
+        if (!active) return;
         fill(0);
         rect(0, 0, width, height);
 //        fill(255);

@@ -1,7 +1,6 @@
 import oscP5.*;
 import netP5.*;
 
-
 class OSCConnection {
     public OscP5 oscP5;
     /* a NetAddress contains the ip address and port number of a remote location in the network. */
@@ -41,6 +40,7 @@ class OSCConnection {
       sendMoveJumpDistance();
       sendGravityProportion();
       sendCameraOn();
+      sendBGMovieOn();
     }
 
     void sendPointsToOSC(LemurPoint[] points) {
@@ -214,6 +214,14 @@ class OSCConnection {
       }
       cOsc.add(vec);
       oscP5.send(cOsc, oscDestination);
+    }
+
+    void sendBGMovieOn() {
+      OscMessage vidOsc = new OscMessage("/Background/Video/Select");
+      float vid = 0.0;
+      if (bgArtist.active) vid = 1.0;
+      vidOsc.add(vid);
+      oscP5.send(vidOsc, oscDestination);
     }
 
     void handleMessage(OscMessage theOscMessage) {

@@ -12,13 +12,12 @@ class PointMotion {
     float gProportion = 0.5;
     float gCurrentProportion = 1.0;
     
-    // When automode is on, this automatically progresses to new backgrounds, presets, etc.
-    boolean autoMode = false;
-    
     int mode = 0; // Mode. 
     // 0 = off. 
     // 1 = Crawl around screen.
     // 2 = bounce left/right 
+    // 3 = spin
+    // 4 = gravity
     
     PointMotion() {
       

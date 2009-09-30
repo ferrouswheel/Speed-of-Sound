@@ -95,13 +95,15 @@ int numPointSets = 14;
 int currentPreset = 0;
 LemurPoint[][] pointSets = new LemurPoint[numPointSets][];
 
-// When automode is on, this automatically progresses to new backgrounds, presets, etc.
-boolean autoMode = false;
+// When demo mode is on, this automatically progresses to new backgrounds, presets, etc.
+boolean demoMode = false;
 // No changes to a particular parameter will be made until this time.
 int minTimeBeforeSwitch = 1000;
-int presetTimer = 0;
-int motionTimer = 0;
-int backgroundTimer = 0;
+// Timer keeps track of when the last change happened, then after minTime the chance
+// following is the likelihood of changing.
+int presetTimer = 0; float presetChangeChance = 0.05;
+int motionTimer = 0; float motionChangeChance = 0.1;
+int backgroundTimer = 0; float backgroundChangeChance = 0.05;
 
 Boolean useRorschach = false;
 Rorschach rorschachLayer; // An alternative to the PointArtist layer.
@@ -178,11 +180,13 @@ void draw()
   background(0);
   PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
   GL gl = pgl.gl;
-  useRorschach = true;
+
   if (useRorschach) { // Simple switch. Use Rorschach or PointArtist
     rorschachLayer.paint();
+  } else if (pArtist != null && pArtist.active) {
+    pArtist.paint(pointSets[currentPreset]);
   } else {
-    if (pArtist != null) pArtist.paint(pointSets[currentPreset]);
+    background(255);
   }
 
   gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
@@ -206,7 +210,51 @@ void draw()
   // Display framerate
   text(frameRate, width-45, height-25);
   gl.glDisable(GL.GL_BLEND); // Re-enable blending mode
+  
+  if (demoMode) {
+    demoModeUpdate();
+  }
 }
+    
+void demoModeUpdate() {
+    presetTimer++;
+    motionTimer++;
+    backgroundTimer++;
+    if (presetTimer > minTimeBeforeSwitch) {
+      if (random(1.0) < presetChangeChance) {
+         // reset presets
+         createLemurPoints(false);
+         // random size
+         pArtist.beatSize = (int) random(40, width / 2);
+         pArtist.minSize = (int) random(0, pArtist.beatSize * 3 / 4);
+         //currentPreset = (int) random(pointSets.length);
+         currentPreset = (int) random(10); // other presets might not changed from boring starts
+         if (currentPreset == 9) {
+           pArtist.active = false;
+         } else {
+           pArtist.active = true;
+         }
+         
+         presetTimer = 0;
+      }
+    }
+    if (motionTimer > minTimeBeforeSwitch) {
+      if (random(1.0) < motionChangeChance) {
+         pMotion.setMode( (int) random(5) );
+         motionTimer = 0;
+         if (pMotion.mode == 4) { // Gravity
+           pMotion.gProportion = random(-0.5, 0.5);
+         }
+      }
+    }
+    if (backgroundTimer > minTimeBeforeSwitch) {
+      if (random(1.0) < backgroundChangeChance) {
+         bgArtist.setCurrentSource((int) random(vids.length));
+         backgroundTimer = 0;
+      }
+    }
+}
+
 
 void stop()
 {
@@ -349,6 +397,7 @@ void createLemurPoints (boolean booting) {
         pointSets[j][i].setBand(i*2, i*2 + 3, 2);
       }
     }
+    
 
   }    
   osc.connectToPoints(pointSets[currentPreset]);
