@@ -79,6 +79,8 @@ BackgroundArtist bgArtist;
 CamBackgroundArtist[] cameras;
 //= new CamBackgroundArtist[2];
 
+boolean overlayOn = true;
+
 // PointMotion is used to set the point locations, after it updates, it will
 // also update the lemur points via OSC (think the Simian mobile disco vid where
 // the circles were moving in response to the beat).
@@ -105,7 +107,6 @@ int presetTimer = 0; float presetChangeChance = 0.05;
 int motionTimer = 0; float motionChangeChance = 0.1;
 int backgroundTimer = 0; float backgroundChangeChance = 0.05;
 
-Boolean useRorschach = false;
 Rorschach rorschachLayer; // An alternative to the PointArtist layer.
 
 void setup()
@@ -181,10 +182,12 @@ void draw()
   PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
   GL gl = pgl.gl;
 
-  if (useRorschach) { // Simple switch. Use Rorschach or PointArtist
-    rorschachLayer.paint();
-  } else if (pArtist != null && pArtist.active) {
-    pArtist.paint(pointSets[currentPreset]);
+  if (overlayOn) {
+    if (rorschachLayer.active) { // Simple switch. Use Rorschach or PointArtist
+      rorschachLayer.paint();
+    } else if (pArtist != null && pArtist.active) {
+      pArtist.paint(pointSets[currentPreset]);
+    }
   } else {
     background(255);
   }
@@ -197,7 +200,7 @@ void draw()
     if (cameras[i].active) cameras[i].paint();
   }
     
-  if (pMotion != null && !useRorschach) {
+  if (pMotion != null && !rorschachLayer.active) {
     pMotion.move(pointSets[currentPreset]);
     osc.sendPointsToOSC(pointSets[currentPreset]);  
   }

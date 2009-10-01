@@ -23,6 +23,7 @@ class Rorschach {
   // These should be in the rorshcach layer class...
   boolean applyThreshold = true;
   float thresh = 0.1;
+  boolean active = false;
 
   GLGraphicsOffScreen rOffscreen;  // Used to store the Rorschach so we can apply pixel filters
   GLTexture texDest; // Used as a destination for pixel-filtered offscreen graphics.
