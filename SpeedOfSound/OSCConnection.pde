@@ -30,17 +30,12 @@ class OSCConnection {
       // within each that passes the OSCConnection object.
       sendPointsToOSC(pointSets[currentPreset]);
       sendNumPointsToOSC();
-      resetRorschachOSC();
-      sendRorschachBeatIncrement();
-      sendRorschachToggle();
-      sendRorschachRadius();
-      sendRorschachMode();
-      sendMovementMode();
-      sendPointArtistRange();
-      sendMoveJumpDistance();
-      sendGravityProportion();
       sendCameraOn();
       sendBGMovieOn();
+
+      pArtist.oscSendState(oscP5);
+      pMotion.oscSendState(oscP5);
+      rorschachLayer.oscSendState(oscP5);
     }
 
     void sendPointsToOSC(LemurPoint[] points) {
@@ -116,93 +111,6 @@ class OSCConnection {
       oscP5.send(numOscMessage, oscDestination);
     }
     
-    void sendPointArtistRange() {
-      OscMessage toggleOsc = new OscMessage("/Points/SizeRange");
-      float[] vec = new float[2];
-      vec[0] = pArtist.minSize / 10;
-      vec[1] = pArtist.beatSize / 10;
-      toggleOsc.add(vec);
-      oscP5.send(toggleOsc, oscDestination);      
-    }
-        
-    void resetRorschachOSC() { // Set all the Lemur controls to current values.      
-      OscMessage ballsOsc = new OscMessage("/Rorschach/NumBalls");
-      float num = rorschachLayer.nBalls;
-      ballsOsc.add(num);
-      
-      oscP5.send(ballsOsc, oscDestination);      
-    }
-    
-    void sendRorschachToggle() { // Set all the Lemur controls to current values.      
-      OscMessage toggleOsc = new OscMessage("/Rorschach/Active");
-      if (rorschachLayer.active) {
-        toggleOsc.add(1.0);
-      } else {
-        toggleOsc.add(0.0);
-      }
-      oscP5.send(toggleOsc, oscDestination);      
-    }
-    
-    void sendRorschachRadius() {
-      OscMessage radiusOsc = new OscMessage("/Rorschach/BlobSize");
-      float rad = rorschachLayer.radius;
-      radiusOsc.add(rad);
-      oscP5.send(radiusOsc, oscDestination);
-      while(true) {
-        if (!rorschachLayer.generatingImage) {
-          rorschachLayer.generateImage();
-          break;
-        }
-      }
-    }
-    
-    void sendRorschachBeatIncrement() {
-      OscMessage msg = new OscMessage("/Rorschach/BeatIncrement");
-      msg.add(float(rorschachLayer.speedUp));
-      oscP5.send(msg, oscDestination);
-    }
-    
-    void sendRorschachMode() {
-      OscMessage radiusOsc = new OscMessage("/Rorschach/BlobMoveMode");
-      float[] vec = new float[8];
-      for (int i = 0; i < 8; i++) {
-        if (i == rorschachLayer.movementMode) {
-          vec[i] = 1.0;
-        } else {
-          vec[i] = 0.0;
-        }
-      }
-      radiusOsc.add(vec);
-      oscP5.send(radiusOsc, oscDestination);
-    }
-    
-    void sendMovementMode() {
-      OscMessage radiusOsc = new OscMessage("/MovementMode/x");
-      float[] vec = new float[10];
-      for (int i = 0; i < 10; i++) {
-        if (i == pMotion.mode) {
-          vec[i] = 1.0;
-        } else {
-          vec[i] = 0.0;
-        }
-      }
-      radiusOsc.add(vec);
-      oscP5.send(radiusOsc, oscDestination);
-    }
-    
-    
-    void sendMoveJumpDistance() {      
-      OscMessage jumpOsc = new OscMessage("/PointMotion/JumpDistance/x");
-      jumpOsc.add(float(pMotion.jumpDistance));
-      oscP5.send(jumpOsc, oscDestination);
-    }
-
-    void sendGravityProportion() {      
-      OscMessage gOsc = new OscMessage("/PointMotion/GravityAmount/x");
-      gOsc.add(pMotion.gProportion);
-      oscP5.send(gOsc, oscDestination);
-    }
-    
     void sendCameraOn() {
       OscMessage cOsc = new OscMessage("/Camera/On/x");
       float[] vec = new float[cameras.length];
@@ -273,85 +181,14 @@ class OSCConnection {
               }
             }
         } else if (elements[1].equals("PointArtist")) {
-            print("PointArtist");
-            if (elements[2].equals("SizeRange")) {
-              int bottom = int(round(theOscMessage.get(0).floatValue()));
-              int top = int(round(theOscMessage.get(1).floatValue()));
-              pArtist.beatSize = top * 10;
-              pArtist.minSize = bottom * 10;
-            } else if (elements[2].equals("Active")) {
-              // TODO - these shouldn't just switch between rorshach and point displays, but should be more general
-              // so that they can select a number of artists
-              float bool = theOscMessage.get(0).floatValue();
-              if (bool == 1.0) {
-                pArtist.active = true;
-                rorschachLayer.active = false;
-              } else {
-                pArtist.active = false;
-                rorschachLayer.active = true;
-              }
-            }
+            pArtist.handleOSC(theOscMessage);
         } else if (elements[1].equals("Rorschach")) {
-          if (elements[2].equals("Active")) {
-            int bool = int(round(theOscMessage.get(0).floatValue()));
-            if (bool == 1) {
-              rorschachLayer.active = true;
-              pArtist.active = false;
-            } else {
-              rorschachLayer.active = false;
-              pArtist.active = true;
-            }
-          } else if (elements[2].equals("Reset")) {
-            rorschachLayer.resetParams();
-            while(true) {
-              if (!rorschachLayer.generatingImage) {
-                rorschachLayer.generateImage();
-                break;
-              }
-            }
-            setAll();
-          } else if (elements[2].equals("NumBalls")) {
-            rorschachLayer.nBalls =  int(round(theOscMessage.get(0).floatValue()));;
-          } else if (elements[2].equals("BlobMoveMode")) {
-            int modeCount = theOscMessage.typetag().length();
-            int mIndex = 0;
-            for (int i = 0; i < modeCount; i++) {
-              float x = theOscMessage.get(i).floatValue();
-              if (x == 1.0) {
-                mIndex = i; break;
-              }
-            }
-            rorschachLayer.movementMode = mIndex;
-          } else if (elements[2].equals("BlobSize")) {
-            while(true) {
-              if (!rorschachLayer.generatingImage) {
-                rorschachLayer.radius = int(round(theOscMessage.get(0).floatValue()));
-                rorschachLayer.generateImage();
-                break;
-              }
-            }
-          }
-          else if (elements[2].equals("BeatIncrement")) {
-            rorschachLayer.speedUp = int(round(theOscMessage.get(0).floatValue()));
-            println(rorschachLayer.speedUp + "  WHEEEEEEE");
-          }
-        } else if (elements[1].equals("MovementMode")) {          
-            int motionCount = theOscMessage.typetag().length();
-            int mIndex = 0;
-            for (int i = 0; i < motionCount; i++) {
-              float x = theOscMessage.get(i).floatValue();
-              if (x == 1.0) {
-                mIndex = i; break;
-              }
-            }
-            pMotion.setMode(mIndex);
-        } else if (elements[1].equals("PointMotion")) {
-          if (elements[2].equals("JumpDistance")) {
-            pMotion.jumpDistance = int(round(theOscMessage.get(0).floatValue()));
-          } else if (elements[2].equals("GravityAmount")) {
-            pMotion.gProportion = theOscMessage.get(0).floatValue();
-          }
-        } else if (elements[1].equals("Overlay")) {
+          rorschachLayer.handleOSC(theOscMessage);
+        }
+        else if (elements[1].equals("PointMotion")) {
+          pMotion.handleOSC(theOscMessage);
+        }
+        else if (elements[1].equals("Overlay")) {
           if (elements[2].equals("On")) {
             if (theOscMessage.get(0).floatValue() == 1.0) {
               overlayOn = true;

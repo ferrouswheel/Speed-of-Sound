@@ -323,4 +323,110 @@ class Rorschach {
       }
     }
   }
+
+  void oscSendState(OscP5 osc) {
+    oscSendNumBalls(osc);
+    oscSendActive(osc);
+    oscSendRadius(osc);
+    oscSendBeatIncrement(osc);
+    oscSendMode(osc);
+  }
+
+  void oscSendNumBalls(OscP5 osc) { // Set all the Lemur controls to current values.      
+    OscMessage ballsOsc = new OscMessage("/Rorschach/NumBalls");
+    float num = nBalls;
+    ballsOsc.add(num);
+    
+    osc.send(ballsOsc, oscDestination);      
+  }
+    
+  void oscSendActive(OscP5 osc) { // Set all the Lemur controls to current values.      
+    OscMessage toggleOsc = new OscMessage("/Rorschach/Active");
+    if (active) {
+      toggleOsc.add(1.0);
+    } else {
+      toggleOsc.add(0.0);
+    }
+    osc.send(toggleOsc, oscDestination);      
+  }
+  
+  void oscSendRadius(OscP5 osc) {
+    OscMessage radiusOsc = new OscMessage("/Rorschach/BlobSize");
+    float rad = radius;
+    radiusOsc.add(rad);
+    osc.send(radiusOsc, oscDestination);
+    //while(true) {
+    //  if (!generatingImage) {
+    //    generateImage();
+    //    break;
+    //}
+    }
+  }
+  
+  void oscSendBeatIncrement(OscP5 osc) {
+    OscMessage msg = new OscMessage("/Rorschach/BeatIncrement");
+    msg.add(float(speedUp));
+    osc.send(msg, oscDestination);
+  }
+  
+  void oscSendMode(OscP5 osc) {
+    OscMessage radiusOsc = new OscMessage("/Rorschach/BlobMoveMode");
+    float[] vec = new float[8];
+    for (int i = 0; i < 8; i++) {
+      if (i == movementMode) {
+        vec[i] = 1.0;
+      } else {
+        vec[i] = 0.0;
+      }
+    }
+    radiusOsc.add(vec);
+    osc.send(radiusOsc, oscDestination);
+  }
+
+  void handleOSC(OscMessage o) {
+    String path = theOscMessage.addrPattern();
+    String elements[] = path.split("/");
+    if (elements[2].equals("Active")) {
+      int bool = int(round(theOscMessage.get(0).floatValue()));
+      if (bool == 1) {
+        active = true;
+        //pArtist.active = false;
+      } else {
+        active = false;
+        //pArtist.active = true;
+      }
+    } else if (elements[2].equals("Reset")) {
+      resetParams();
+      while(true) {
+        if (!generatingImage) {
+          generateImage();
+          break;
+        }
+      }
+      setAll();
+    } else if (elements[2].equals("NumBalls")) {
+      nBalls =  int(round(theOscMessage.get(0).floatValue()));;
+    } else if (elements[2].equals("BlobMoveMode")) {
+      int modeCount = theOscMessage.typetag().length();
+      int mIndex = 0;
+      for (int i = 0; i < modeCount; i++) {
+        float x = theOscMessage.get(i).floatValue();
+        if (x == 1.0) {
+          mIndex = i; break;
+        }
+      }
+      movementMode = mIndex;
+    } else if (elements[2].equals("BlobSize")) {
+      while(true) {
+        if (!generatingImage) {
+          radius = int(round(theOscMessage.get(0).floatValue()));
+          generateImage();
+          break;
+        }
+      }
+    }
+    else if (elements[2].equals("BeatIncrement")) {
+      speedUp = int(round(theOscMessage.get(0).floatValue()));
+    }
+  }
 }

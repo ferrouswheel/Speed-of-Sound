@@ -178,5 +178,56 @@ class PointMotion {
              
       }
     }
+    
+    void oscSendState(OscP5 osc) {
+      oscSendJumpDistance(osc);
+      oscSendGravity(osc);
+      oscSendMode(osc);
+    }
 
+    void oscSendJumpDistance(OscP5 osc) {      
+      OscMessage jumpOsc = new OscMessage("/PointMotion/JumpDistance");
+      jumpOsc.add(float(jumpDistance));
+      osc.send(jumpOsc, oscDestination);
+    }
+
+    void oscSendGravity(OscP5 osc) {
+      OscMessage gOsc = new OscMessage("/PointMotion/Gravity");
+      gOsc.add(gProportion);
+      osc.send(gOsc, oscDestination);
+    }
+
+    void sendMovementMode(OscP5 osc) {
+      OscMessage radiusOsc = new OscMessage("/PointMotion/Mode");
+      float[] vec = new float[10];
+      for (int i = 0; i < 10; i++) {
+        if (i == mode) {
+          vec[i] = 1.0;
+        } else {
+          vec[i] = 0.0;
+        }
+      }
+      radiusOsc.add(vec);
+      osc.send(radiusOsc, oscDestination);
+    }
+    
+  void handleOSC(OscMessage o) {
+    String path = o.addrPattern();
+    String elements[] = path.split("/");
+    if (elements[2].equals("Mode")) {          
+      int motionCount = o.typetag().length();
+      int mIndex = 0;
+      for (int i = 0; i < motionCount; i++) {
+        float x = o.get(i).floatValue();
+        if (x == 1.0) {
+          mIndex = i; break;
+        }
+      }
+      setMode(mIndex);
+    } else if (elements[2].equals("JumpDistance")) {
+      jumpDistance = int(round(o.get(0).floatValue()));
+    } else if (elements[2].equals("Gravity")) {
+      gProportion = o.get(0).floatValue();
+    }
+  }
 }
