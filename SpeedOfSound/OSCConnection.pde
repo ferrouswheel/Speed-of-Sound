@@ -95,8 +95,8 @@ class OSCConnection {
       if (p >= 0 && p < numPointSets) {
         currentPreset = p;
         connectToPoints(pointSets[currentPreset]);
+        sendNumPointsToOSC();
       }
-      sendNumPointsToOSC();
     }
     
     void sendNumPointsToOSC() {
@@ -141,10 +141,9 @@ class OSCConnection {
         /* get and print the address pattern and the typetag of the received OscMessage */
         // println("SOS received an osc message with addrpattern "+path+" and typetag "+theOscMessage.typetag());
         String elements[] = path.split("/");
-        if (debug) {
-            println("Received OSC message...");
-            //theOscMessage.print();
-        }
+        //println("Received OSC message...");
+        //theOscMessage.print();
+        
         if (elements[1].equals("Points")) {
             //int pIndex = Integer.parseInt(path.substring(6,path.indexOf("/",6)));
             if (elements[2].equals("x")) {

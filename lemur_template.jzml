@@ -65,7 +65,7 @@
 </WINDOW>
 </WINDOW>
 </WINDOW>
-<WINDOW class="JAZZINTERFACE" text="Default" x="0" y="0" width="800" height="600" state="0" group="0" font="tahoma,11,0" >
+<WINDOW class="JAZZINTERFACE" text="Default" x="0" y="0" width="800" height="600" state="1" group="0" font="tahoma,11,0" >
 <WINDOW class="Container" text="Container" x="0" y="0" width="800" height="600" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="7351981" label="1" tabbar="1" meta="1">
 <WINDOW class="Tab" text="Lemur Points" x="0" y="0" width="784" height="552" state="0" group="0" font="tahoma,11,0" >
 <WINDOW class="Multiball" text="Points" x="40" y="0" width="696" height="500" state="1" group="0" font="tahoma,10,0" send="1" osc_target="1" midi_target="-2" kbmouse_target="-2" capture="1" color="1597843" cursor="3" ephemere="0" grid="0" grid_steps="1,1" label="0" nbr="10" physic="2" polyphony="0" zoom="1.000000">
@@ -266,13 +266,28 @@
 <VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container/PointArtistToggle/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
 </WINDOW>
 <WINDOW class="CustomButton" text="PointArtistOverlayToggle" x="99" y="0" width="99" height="82" id="8" state="241" group="0" font="tahoma,12,0" send="1" osc_target="1" midi_target="-2" kbmouse_target="-2" behavior="0" bitmap="0,0" capture="1" color="1139856,9445792" label_off="Overlay OFF" label_on="Overlay ON" outline="1">
-<PARAM name="x=" value="1.000000" send="25" osc_target="-2" osc_trigger="1" osc_message="/PointArtist/Overlay/On" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+<PARAM name="x=" value="1.000000" send="25" osc_target="1" osc_trigger="1" osc_message="/PointArtist/Overlay" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
 <VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container/PointArtistOverlayToggle/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
 </WINDOW>
+<WINDOW class="CustomButton" text="PointArtistOverlayToggle2" x="0" y="137" width="99" height="82" id="9" state="241" group="0" font="tahoma,12,0" send="1" osc_target="1" midi_target="-2" kbmouse_target="-2" behavior="0" bitmap="0,0" capture="1" color="1139856,9445792" label_off="Image OFF" label_on="Image ON" outline="1">
+<PARAM name="x=" value="1.000000" send="25" osc_target="1" osc_trigger="1" osc_message="/PointArtist/Image/On" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+<VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container/PointArtistOverlayToggle2/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+</WINDOW>
+<WINDOW class="CustomButton" text="PointArtistOverlayToggle3" x="99" y="137" width="99" height="82" id="10" state="241" group="0" font="tahoma,12,0" send="1" osc_target="1" midi_target="-2" kbmouse_target="-2" behavior="0" bitmap="0,0" capture="1" color="1139856,9445792" label_off="Rotate OFF" label_on="Rotate ON" outline="1">
+<PARAM name="x=" value="1.000000" send="25" osc_target="1" osc_trigger="1" osc_message="/PointArtist/Rotate" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+<VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container/PointArtistOverlayToggle3/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+</WINDOW>
+<WINDOW class="Switches" text="Switches" x="12" y="291" width="148" height="60" id="11" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" capture="1" color="1139856,9445792" column="2" label="0" multicolor="0" paint="0" radio="1" row="1">
+<PARAM name="x=" value="0.000000,0.000000" send="25" osc_target="-2" osc_trigger="1" osc_message="/PointArtist/Image/Select" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+<VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container/Switches/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+</WINDOW>
+<WINDOW class="Text" text="Text" x="0" y="243" width="160" height="48" id="12" state="245" group="0" font="tahoma,14,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="7351981" content="Image">
+<VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container/Text/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
 </WINDOW>
 </WINDOW>
 </WINDOW>
-<WINDOW class="JAZZINTERFACE" text="Rorschach" x="0" y="0" width="800" height="600" id="2" state="1" group="0" font="tahoma,11,0" >
+</WINDOW>
+<WINDOW class="JAZZINTERFACE" text="Rorschach" x="0" y="0" width="800" height="600" id="2" state="0" group="0" font="tahoma,11,0" >
 <WINDOW class="Container" text="Container3" x="0" y="0" width="800" height="600" id="25" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="7351981" label="1" tabbar="1" meta="1">
 <WINDOW class="Tab" text="Rorschach" x="0" y="0" width="784" height="552" id="1" state="1" group="0" font="tahoma,11,0" >
 <WINDOW class="CustomButton" text="RorschachToggle" x="0" y="0" width="99" height="82" id="16" state="241" group="0" font="tahoma,12,0" send="1" osc_target="1" midi_target="-2" kbmouse_target="-2" behavior="0" bitmap="0,0" capture="1" color="1139856,9445792" label_off="OFF" label_on="ON" outline="1">
@@ -321,6 +336,10 @@
 <WINDOW class="CustomButton" text="RorschachThresholdOn" x="578" y="106" width="99" height="82" id="24" state="241" group="0" font="tahoma,12,0" send="1" osc_target="1" midi_target="-2" kbmouse_target="-2" behavior="0" bitmap="0,0" capture="1" color="1139856,9445792" label_off="Threshold OFF" label_on="Threshold ON" outline="1">
 <PARAM name="x=" value="1.000000" send="25" osc_target="-2" osc_trigger="1" osc_message="/Rorschach/Threshold/On" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
 <VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container3/RorschachThresholdOn/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+</WINDOW>
+<WINDOW class="CustomButton" text="RorschachOverlayToggle2" x="0" y="0" width="99" height="82" id="25" state="241" group="0" font="tahoma,12,0" send="1" osc_target="1" midi_target="-2" kbmouse_target="-2" behavior="0" bitmap="0,0" capture="1" color="1139856,9445792" label_off="Rorschach OFF" label_on="Rorschach ON" outline="1">
+<PARAM name="x=" value="1.000000" send="25" osc_target="-2" osc_trigger="1" osc_message="/Rorschach/Active" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+<VARIABLE name="light=0" send="0" osc_target="-2" osc_trigger="1" osc_message="/Container3/RorschachOverlayToggle2/light" midi_target="-2" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-2" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
 </WINDOW>
 </WINDOW>
 <WINDOW class="Tab" text="Titles" x="0" y="0" width="784" height="552" id="2" state="0" group="0" font="tahoma,11,0" >

@@ -8,13 +8,14 @@ class Rorschach {
   int ballShapeMode;
   int numBallShapes = 3;
   int movementMode;
-  boolean invertAlpha;
+  boolean invertAlpha = false;
   boolean blackBackground;
   color backgroundColor;
   color ballColor;
   boolean randomColor;
   PImage ballImage;
   int radius;
+  boolean overlay = true;
   
   int speedUp = 2;
   
@@ -54,6 +55,28 @@ class Rorschach {
       } else {
         active = false;
         //pArtist.active = true;
+      }
+    } else if (elements[2].equals("Threshold") && 
+      elements[3].equals("On")) {
+      int bool = int(round(o.get(0).floatValue()));
+      if (bool == 1) {
+        applyThreshold = true;
+      } else {
+        applyThreshold = false;
+      }
+    } else if (elements[2].equals("Invert")) {
+      int bool = int(round(o.get(0).floatValue()));
+      if (bool == 1) {
+        invertAlpha = true;
+      } else {
+        invertAlpha = false;
+      }
+    } else if (elements[2].equals("Overlay")) {
+      int bool = int(round(o.get(0).floatValue()));
+      if (bool == 1) {
+        overlay = true;
+      } else {
+        overlay = false;
       }
     } else if (elements[2].equals("Reset")) {
       resetParams();
@@ -101,14 +124,21 @@ class Rorschach {
 
     rOffscreen.beginDraw(); // Begin drawing offscreen
 
-    gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);   
+    if (overlay) {
+      gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
+    }    
     rOffscreen.background(0);
+        
     for(int i=0; i<nBalls; i++){
         // Render mirror-images of the balls
         rOffscreen.image(ballImage,(width-balls[i][0])-radius,balls[i][1]-radius);
         rOffscreen.image(ballImage,balls[i][0]-radius,balls[i][1]-radius);
     }
-    
+    if (invertAlpha) {
+      // TODO, write GLSL script for invert
+      //rOffscreen.getTexture().filter(INVERT, texDest);
+      rOffscreen.image(texDest, 0, 0);
+    }  
     rOffscreen.endDraw();
     if (applyThreshold) { // Apply or not apply Threshhold filter
       rOffscreen.getTexture().filter(threshhold, texDest);
@@ -374,9 +404,12 @@ class Rorschach {
   void oscSendState(OscP5 osc, NetAddress oscDestination) {
     oscSendNumBalls(osc,oscDestination);
     oscSendActive(osc,oscDestination);
+    oscSendThresholdOn(osc,oscDestination);
     oscSendRadius(osc,oscDestination);
     oscSendBeatIncrement(osc,oscDestination);
     oscSendMode(osc,oscDestination);
+    oscSendInvert(osc,oscDestination);
+    oscSendOverlay(osc,oscDestination);
   }
 
   void oscSendNumBalls(OscP5 osc, NetAddress oscDestination) { // Set all the Lemur controls to current values.      
@@ -390,6 +423,36 @@ class Rorschach {
   void oscSendActive(OscP5 osc, NetAddress oscDestination) { // Set all the Lemur controls to current values.      
     OscMessage toggleOsc = new OscMessage("/Rorschach/Active");
     if (active) {
+      toggleOsc.add(1.0);
+    } else {
+      toggleOsc.add(0.0);
+    }
+    osc.send(toggleOsc, oscDestination);      
+  }
+
+  void oscSendInvert(OscP5 osc, NetAddress oscDestination) { // Set all the Lemur controls to current values.      
+    OscMessage toggleOsc = new OscMessage("/Rorschach/Invert");
+    if (invertAlpha) {
+      toggleOsc.add(1.0);
+    } else {
+      toggleOsc.add(0.0);
+    }
+    osc.send(toggleOsc, oscDestination);      
+  }
+  
+  void oscSendOverlay(OscP5 osc, NetAddress oscDestination) { // Set all the Lemur controls to current values.      
+    OscMessage toggleOsc = new OscMessage("/Rorschach/Overlay");
+    if (overlay) {
+      toggleOsc.add(1.0);
+    } else {
+      toggleOsc.add(0.0);
+    }
+    osc.send(toggleOsc, oscDestination);      
+  }
+  
+  void oscSendThresholdOn(OscP5 osc, NetAddress oscDestination) { // Set all the Lemur controls to current values.      
+    OscMessage toggleOsc = new OscMessage("/Rorschach/Threshold/On");
+    if (applyThreshold) {
       toggleOsc.add(1.0);
     } else {
       toggleOsc.add(0.0);

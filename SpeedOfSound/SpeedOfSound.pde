@@ -216,27 +216,41 @@ void draw()
   GL gl = pgl.gl;
 
   titleArtist.paint(); // Needs to do video changes in paint method
-  if (!titleArtist.playing) {
-    if (overlayOn) {
-      if (rorschachLayer.active) { // Simple switch. Use Rorschach or PointArtist
+  if (!(titleArtist.playing)) {
+      if (rorschachLayer.active && rorschachLayer.overlay) { // Simple switch. Use Rorschach or PointArtist
         rorschachLayer.paint();
-      } else if (pArtist != null && pArtist.active) {
+      }
+      if (pArtist.active && pArtist.overlay) {
         pArtist.paint(pointSets[currentPreset]);
       }
-    } else {
-      background(255);
-    }
+      /*if (!(pArtist.active && pArtist.overlay) &&
+          !(rorschachLayer.active && rorshachLayer.overlay)) {
+        background(255);
+      }*/
   }
-
-  gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
-  gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
-  bgArtist.paint(); // Movie rendered on white regions of screen
+  boolean blendTime = (pArtist.active && pArtist.overlay) ||
+          (rorschachLayer.active && rorschachLayer.overlay) ||
+          (titleArtist.playing && titleArtist.isOverlay == 1);
+  if (blendTime) {
+    gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
+    gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
+  }
+  //if (!titleArtist.playing || titleArtist.isOverlay == 1) {
+    bgArtist.paint(); // Movie rendered on white regions of screen
+  //}
 
   for (int i = 0; i < cameras.length; i++) {
     if (cameras[i].active) cameras[i].paint();
   }
-    
-  if (pMotion != null && !rorschachLayer.active) {
+  
+  if (rorschachLayer.active && !rorschachLayer.overlay) { // Simple switch. Use Rorschach or PointArtist
+     rorschachLayer.paint();
+  }
+  if (pArtist.active && !pArtist.overlay) {
+     pArtist.paint(pointSets[currentPreset]);
+  }
+ 
+  if (pMotion != null) {
     pMotion.move(pointSets[currentPreset]);
     osc.sendPointsToOSC(pointSets[currentPreset]);  
   }
@@ -244,11 +258,15 @@ void draw()
     oArtists[i].paint();
   }
   
-  gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking so framerate display is legible
+  if (blendTime) {
+    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking so framerate display is legible
+  }
   
   // Display framerate
   text(frameRate, width-45, height-25);
-  gl.glDisable(GL.GL_BLEND); // Re-enable blending mode
+  if (blendTime) {
+    gl.glDisable(GL.GL_BLEND);
+  }
   
   if (demoMode) {
     demoModeUpdate();
