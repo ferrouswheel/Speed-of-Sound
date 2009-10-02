@@ -33,6 +33,10 @@ class OSCConnection {
       sendNumPointsToOSC();
       sendCameraOn();
       sendBGMovieOn();
+      sendBGMovieSpeed();
+      sendBGMovieBeatJump();
+      sendMotionBlur();
+      sendMotionBlurOn();
 
       pArtist.oscSendState(oscP5, oscDestination);
       pMotion.oscSendState(oscP5, oscDestination);
@@ -135,6 +139,31 @@ class OSCConnection {
       vidOsc.add(vid);
       oscP5.send(vidOsc, oscDestination);
     }
+    
+    void sendBGMovieSpeed() {
+      OscMessage vidOsc = new OscMessage("/VideoSpeed/x");
+      vidOsc.add(((MovieBackgroundArtist)bgArtist).speed);
+      oscP5.send(vidOsc, oscDestination);
+    }
+    
+    void sendBGMovieBeatJump() {
+      OscMessage vidOsc = new OscMessage("/VideoJump/x");
+      vidOsc.add(((MovieBackgroundArtist)bgArtist).beatJump);
+      oscP5.send(vidOsc, oscDestination);
+    }
+
+    void sendMotionBlur() {
+      OscMessage vidOsc = new OscMessage("/Blur/x");
+      vidOsc.add(((BlurOverlayArtist)oArtists[0]).n);
+      oscP5.send(vidOsc, oscDestination);
+    }
+    
+    void sendMotionBlurOn() {
+      OscMessage vidOsc = new OscMessage("/Blur/on");
+      vidOsc.add(((BlurOverlayArtist)oArtists[0]).active);
+      oscP5.send(vidOsc, oscDestination);
+    }
+
 
     void handleMessage(OscMessage theOscMessage) {
         String path = theOscMessage.addrPattern();
@@ -246,12 +275,26 @@ class OSCConnection {
         }
         else if (elements[1].equals("VideoSpeed")) {
           int speed = int(round(theOscMessage.get(0).floatValue()));
-          if (speed == 1) {
-            //sosMovie.setRate(speed);
-            bgArtist.setSpeed(speed);
-          } else {
-            //sosMovie.setRate(speed * 2);
-            bgArtist.setSpeed(speed * 2);
+          //sosMovie.setRate(speed);
+          ((MovieBackgroundArtist)bgArtist).setSpeed(speed);
+        }
+        else if (elements[1].equals("VideoJump")) {
+          float jump = theOscMessage.get(0).floatValue();
+          //sosMovie.setRate(speed);
+          ((MovieBackgroundArtist)bgArtist).beatJump = jump;
+        }
+        else if (elements[1].equals("Blur")) {
+          if (elements[2].equals("x")) {
+            float blur = theOscMessage.get(0).floatValue();
+            ((BlurOverlayArtist)oArtists[0]).n = blur;
+            println("Blur is " + blur);
+          } else if (elements[2].equals("On")) {
+            float bool = theOscMessage.get(0).floatValue();
+            if (bool == 1.0) {
+              ((BlurOverlayArtist)oArtists[0]).active = true;
+            } else {
+              ((BlurOverlayArtist)oArtists[0]).active = false;
+            }
           }
         } 
         else if (elements[1].equals("Camera")) {

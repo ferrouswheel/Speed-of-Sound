@@ -200,7 +200,7 @@ void setup()
   // WITHOUT
   oArtists = new OverlayArtist[1];
   oArtists[0] = createOverlayArtist("BlurOverlayArtist");
-  oArtists[0].init(new Double(0.50));
+  oArtists[0].init(new Double(0.90));
   rorschachLayer = new Rorschach(this);
 
   // Create LemurPoint objects

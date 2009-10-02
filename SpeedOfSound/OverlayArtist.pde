@@ -17,6 +17,8 @@ class BlurOverlayArtist extends OverlayArtist {
     // Now using accumulation buffer technique mentioned here:
     // http://processing.org/discourse/yabb2/YaBB.pl?num=1177605444
     float n;
+    boolean active = false;
+    
 
     BlurOverlayArtist() {
         init(new Double(0.90));
@@ -34,10 +36,11 @@ class BlurOverlayArtist extends OverlayArtist {
     }
 
     void paint() {
-        gl.glAccum( GL.GL_MULT, n );
- 
-        gl.glAccum( GL.GL_ACCUM, 1-n );
-        gl.glAccum( GL.GL_RETURN, 1.0 );
+        if (active) {
+          gl.glAccum( GL.GL_MULT, n );
+          gl.glAccum( GL.GL_ACCUM, 1-n );
+          gl.glAccum( GL.GL_RETURN, 1.0 );
+        }
     }
 }
 

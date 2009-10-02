@@ -37,6 +37,8 @@ class MovieBackgroundArtist extends BackgroundArtist {
     // Index of current move
     int vidNum = 0;
     PApplet parent;
+    float beatJump = 0.0;
+    float speed = 1.0;
 
     MovieBackgroundArtist(PApplet _parent) {
       parent = _parent;
@@ -54,6 +56,7 @@ class MovieBackgroundArtist extends BackgroundArtist {
     }
     
     void setSpeed(float s) {
+      speed = s;
       m.speed(s);
       
     }
@@ -75,10 +78,10 @@ class MovieBackgroundArtist extends BackgroundArtist {
     }
 
     void paint() {
-      if (beat.isKick()) {
+      if (beatJump != 0.0 && beat.isKick()) {
         // JMC
         //m.setCurrentTime(sosMovie.getCurrentTime() - 0.5);
-        m.jump(m.duration() - 0.5);
+        m.jump(m.time() + beatJump);
       }
       
       // JMC:
@@ -87,6 +90,7 @@ class MovieBackgroundArtist extends BackgroundArtist {
       // Processing Movie library:
       //if (m.available()) m.read();
       image(m, 0, 0, width, height);
+      if (m.time() == 0 && speed < 0.0) m.jump(m.duration());
     }
 
 }
