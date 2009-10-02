@@ -4,6 +4,7 @@ class PointArtist {
     int minSize = 0;
     float fadeProportion = 0.95;
     boolean active = true;
+    boolean overlay = true;
         
     PointArtist() {
     }
@@ -91,13 +92,13 @@ class PointArtist {
     }
   }
 
-  void oscSendState(OscP5 osc) {
-    oscSendRange(osc);
-    oscSendActive(osc);
-    oscSendOverlay(osc);
+  void oscSendState(OscP5 osc, NetAddress oscDestination) {
+    oscSendRange(osc,oscDestination);
+    oscSendActive(osc,oscDestination);
+    oscSendOverlay(osc,oscDestination);
   }
   
-  void oscSendRange(OscP5 osc) {
+  void oscSendRange(OscP5 osc, NetAddress oscDestination) {
     OscMessage toggleOsc = new OscMessage("/PointArtist/SizeRange");
     float[] vec = new float[2];
     vec[0] = minSize / 10;
@@ -106,7 +107,7 @@ class PointArtist {
     osc.send(toggleOsc, oscDestination);      
   }
 
-  void oscSendActive(OscP5 osc) {
+  void oscSendActive(OscP5 osc, NetAddress oscDestination) {
     OscMessage toggleOsc = new OscMessage("/PointArtist/Active");
     float a = 0.0;
     if (active) a = 1.0;
@@ -114,7 +115,7 @@ class PointArtist {
     osc.send(toggleOsc, oscDestination); 
   }
 
-  void oscSendOverlay(OscP5 osc) {
+  void oscSendOverlay(OscP5 osc, NetAddress oscDestination) {
     OscMessage toggleOsc = new OscMessage("/PointArtist/Active");
     float a = 0.0;
     if (overlay) a = 1.0;

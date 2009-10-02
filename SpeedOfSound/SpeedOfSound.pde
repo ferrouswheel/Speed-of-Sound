@@ -35,6 +35,7 @@ Don't know where the corruption is occurring :-(
 
 
 // Config:
+boolean debug = true;
 // IP of the Lemur, Lemur should also be set up to send to the local IP on port 12000
 String lemurIP = "10.9.8.172";
 // This hasn't been implemented yet, but Will should put all JMC stuff in a separate BackgroundArtist
@@ -49,7 +50,34 @@ String[] vids = new String[]{"carnival_faces_small.avi", "carnival_motion_small.
       "rollercoaster_small.avi", "spin_lights1_small.avi", "carnival_faces_small.avi",
       "crowd_lights1_small.avi", "dancing_costume_small.avi", "lights_loop1_small.avi", "lights_loop2_small.avi", 
     "lights_loop3_small.avi", "lights_loop4_small.avi", "lights_loop5_grid_small.avi", "lights_loop6_small.avi", 
-    "lights_loop7_small.avi", "lights_loop8_small.avi", "lights_loop9_small.avi", "lights_loop10_small.avi", "lights_loop11_small.avi", "machines_small.avi"};
+    "lights_loop7_small.avi", "lights_loop8_small.avi",
+    "lights_loop9_small.avi", "lights_loop10_small.avi",
+    "lights_loop11_small.avi", "machines_small.avi",
+    "plane2_multiply2.avi","plane2_multiply3.avi",
+    "plane2a.avi","plane2aaa.avi",
+    "plane3.avi","plane4.avi",
+    "plane5.avi","plane5_multiply2.avi",
+    "plane5_multiply3.avi","plane6.avi",
+    "rocket1.avi","rocket2.avi","rocket3a.avi"
+};
+
+// Title movies, first is a coloured one suitable for a background, second is for overlays (black/white)
+String titles[][] = {
+  { null, null }, // "title_sos.avi"
+  { null, "title_jetpilot.avi"},
+  { null, "title_boy.avi"},
+  { "title_kellective.avi", null}, 
+  { null, "title_andy.avi"},
+  { null, "title_perspexx.avi"},
+  { null, "title_rich.avi"},
+  { "title_aerialists.avi", "title_aerialists_white.avi"},
+  { "title_aerialists_small.avi", null},
+  { "title_andrea3.avi", "title_andrea_white.avi"},
+  { "title_pipi.avi", "title_pipi_white.avi"},
+  { "title_polly.avi", "title_polly_white.avi"},
+  { "title_aaron.avi", "title_aaron_white.avi"},
+};
+
 // Gifs to use for GIF background
 // TODO
 // Images to use for image backgroun
@@ -78,6 +106,8 @@ BackgroundArtist bgArtist;
 
 CamBackgroundArtist[] cameras;
 //= new CamBackgroundArtist[2];
+
+TitleBackgroundArtist titleArtist;
 
 boolean overlayOn = true;
 
@@ -146,6 +176,9 @@ void setup()
 
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
   bgArtist.init(vids);
+  
+  titleArtist = new TitleBackgroundArtist(this);
+  titleArtist.init(titles);
 
   // Initialise cameras
   cameras = new CamBackgroundArtist[cameraNames.length];
@@ -182,14 +215,17 @@ void draw()
   PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;
   GL gl = pgl.gl;
 
-  if (overlayOn) {
-    if (rorschachLayer.active) { // Simple switch. Use Rorschach or PointArtist
-      rorschachLayer.paint();
-    } else if (pArtist != null && pArtist.active) {
-      pArtist.paint(pointSets[currentPreset]);
+  titleArtist.paint(); // Needs to do video changes in paint method
+  if (!titleArtist.playing) {
+    if (overlayOn) {
+      if (rorschachLayer.active) { // Simple switch. Use Rorschach or PointArtist
+        rorschachLayer.paint();
+      } else if (pArtist != null && pArtist.active) {
+        pArtist.paint(pointSets[currentPreset]);
+      }
+    } else {
+      background(255);
     }
-  } else {
-    background(255);
   }
 
   gl.glEnable(GL.GL_BLEND); // Re-enable blending mode

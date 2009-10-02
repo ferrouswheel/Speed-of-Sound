@@ -22,6 +22,7 @@ class OSCConnection {
 
         /* the address of the osc broadcast server */
         oscDestination = new NetAddress(server,port);
+        if (debug) println("created new OSCConnection");
     }
 
     void setAll() {
@@ -33,9 +34,11 @@ class OSCConnection {
       sendCameraOn();
       sendBGMovieOn();
 
-      pArtist.oscSendState(oscP5);
-      pMotion.oscSendState(oscP5);
-      rorschachLayer.oscSendState(oscP5);
+      pArtist.oscSendState(oscP5, oscDestination);
+      pMotion.oscSendState(oscP5, oscDestination);
+      rorschachLayer.oscSendState(oscP5, oscDestination);
+      titleArtist.oscSendState(oscP5, oscDestination);
+      if (debug) println("Sent state to OSC");
     }
 
     void sendPointsToOSC(LemurPoint[] points) {
@@ -137,12 +140,13 @@ class OSCConnection {
         String path = theOscMessage.addrPattern();
         /* get and print the address pattern and the typetag of the received OscMessage */
         // println("SOS received an osc message with addrpattern "+path+" and typetag "+theOscMessage.typetag());
-        theOscMessage.print();
         String elements[] = path.split("/");
-        println(elements);
+        if (debug) {
+            println("Received OSC message...");
+            //theOscMessage.print();
+        }
         if (elements[1].equals("Points")) {
             //int pIndex = Integer.parseInt(path.substring(6,path.indexOf("/",6)));
-            print("points");
             if (elements[2].equals("x")) {
                 int pointCount = theOscMessage.typetag().length();
                 for (int i = 0; i < pointCount; i++) {
@@ -183,7 +187,7 @@ class OSCConnection {
         } else if (elements[1].equals("PointArtist")) {
             pArtist.handleOSC(theOscMessage);
         } else if (elements[1].equals("Rorschach")) {
-          rorschachLayer.handleOSC(theOscMessage);
+            rorschachLayer.handleOSC(theOscMessage);
         }
         else if (elements[1].equals("PointMotion")) {
           pMotion.handleOSC(theOscMessage);
@@ -196,6 +200,36 @@ class OSCConnection {
               if (!rorschachLayer.active) pArtist.active = true;
             } else {
               overlayOn = false;
+            }
+          }
+        }
+        //// TITLES
+        else if (elements[1].equals("Titles")) {
+          if (elements[2].equals("Select")) {
+            int backgroundCount = theOscMessage.typetag().length();
+            int bIndex = 0;
+            for (int i = 0; i < backgroundCount; i++) {
+              float x = theOscMessage.get(i).floatValue();
+              if (x == 1.0) {
+                bIndex = i; break;
+              }
+            }
+            titleArtist.setCurrentSource(bIndex);
+          } else if (elements[2].equals("Play")) {
+            float bool = theOscMessage.get(0).floatValue();
+            if (bool == 1.0) {
+              titleArtist.play();
+            } else {
+              titleArtist.stop();
+            }
+          } else if (elements[2].equals("Overlay")) {
+            float bool = theOscMessage.get(0).floatValue();
+            if (bool == 1.0) {
+              titleArtist.isOverlay = 1;
+              titleArtist.setCurrentSource(titleArtist.vidNum);
+            } else {
+              titleArtist.isOverlay = 0;
+              titleArtist.setCurrentSource(titleArtist.vidNum);
             }
           }
         }

@@ -179,25 +179,25 @@ class PointMotion {
       }
     }
     
-    void oscSendState(OscP5 osc) {
-      oscSendJumpDistance(osc);
-      oscSendGravity(osc);
-      oscSendMode(osc);
+    void oscSendState(OscP5 osc, NetAddress oscDestination) {
+      oscSendJumpDistance(osc,oscDestination);
+      oscSendGravity(osc,oscDestination);
+      oscSendMode(osc,oscDestination);
     }
 
-    void oscSendJumpDistance(OscP5 osc) {      
+    void oscSendJumpDistance(OscP5 osc, NetAddress oscDestination) {      
       OscMessage jumpOsc = new OscMessage("/PointMotion/JumpDistance");
       jumpOsc.add(float(jumpDistance));
       osc.send(jumpOsc, oscDestination);
     }
 
-    void oscSendGravity(OscP5 osc) {
+    void oscSendGravity(OscP5 osc, NetAddress oscDestination) {
       OscMessage gOsc = new OscMessage("/PointMotion/Gravity");
       gOsc.add(gProportion);
       osc.send(gOsc, oscDestination);
     }
 
-    void sendMovementMode(OscP5 osc) {
+    void oscSendMode(OscP5 osc, NetAddress oscDestination) {
       OscMessage radiusOsc = new OscMessage("/PointMotion/Mode");
       float[] vec = new float[10];
       for (int i = 0; i < 10; i++) {
