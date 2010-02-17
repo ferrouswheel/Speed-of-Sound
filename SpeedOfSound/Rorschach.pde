@@ -78,6 +78,8 @@ class Rorschach {
       } else {
         overlay = false;
       }
+      // Send Active back to Lemur to update multiple button
+      oscSendOverlay(osc.oscP5, osc.oscDestination);
     } else if (elements[2].equals("Reset")) {
       resetParams();
       while(true) {
@@ -123,12 +125,10 @@ class Rorschach {
     }
 
     rOffscreen.beginDraw(); // Begin drawing offscreen
-
     if (overlay) {
-      gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
+        rOffscreen.setBlendMode(GLGraphicsOffScreen.ADD); // Begin drawing offscreen
     }    
     rOffscreen.background(0);
-        
     for(int i=0; i<nBalls; i++){
         // Render mirror-images of the balls
         rOffscreen.image(ballImage,(width-balls[i][0])-radius,balls[i][1]-radius);
@@ -441,7 +441,7 @@ class Rorschach {
   }
   
   void oscSendOverlay(OscP5 osc, NetAddress oscDestination) { // Set all the Lemur controls to current values.      
-    OscMessage toggleOsc = new OscMessage("/Rorschach/Overlay");
+    OscMessage toggleOsc = new OscMessage("/Rorschach/Overlay/On");
     if (overlay) {
       toggleOsc.add(1.0);
     } else {

@@ -1,10 +1,7 @@
 /**
- * Speed of Sound Lemur interface
+ * Speed of Sound Visualiser with Lemur interface
  * by Joel Pitt, Kelly, Will Marshall
  *
- * Adapted from example:
- * Frequency Energy 
- * by Damien Di Fede.
  */
 
 import jmcvideo.*;
@@ -13,60 +10,71 @@ import processing.opengl.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import codeanticode.glgraphics.*;
+import java.nio.IntBuffer;
 
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
 import oscP5.*;
 
-/**
+/*
 
 Known bugs:
 
-Lemur sometimes stop responding to multiball updates for where the points are. Appears to be on the Lemur side,
-and for now, the easiest fix is to restart the Lemur (everything else still works, it's just the point updates
-on the Lemur that don't work).
+Lemur sometimes stop responding to multiball updates for where the points are.
+Appears to be on the Lemur side, and for now, the easiest fix is to restart the
+Lemur (everything else still works, it's just the point updates on the Lemur
+that don't work).
 
-Roscharch image corruption - sometimes the ball image doesn't paint correctly. Joel debugged the generateCircleImage
-method, and it seems to be creating the image correctly when the contents of the image are printed to stdout.
-Don't know where the corruption is occurring :-(
+Roscharch image corruption - sometimes the ball image doesn't paint correctly.
+Joel debugged the generateCircleImage method, and it seems to be creating the
+image correctly when the contents of the image are printed to stdout.  Don't
+know where the corruption is occurring :-(
 
 */
 
 
 // Config:
 boolean debug = true;
+
 // IP of the Lemur, Lemur should also be set up to send to the local IP on port 12000
-String lemurIP = "10.9.8.172";
-// This hasn't been implemented yet, but Will should put all JMC stuff in a separate BackgroundArtist
-// and choose the BG artist based on this variable.
-Boolean useJMC = false;
+String lemurIP = "192.168.1.8"; //169.254.5.103"; //192.168.1.135"; //"169.254.5.103"; ////"10.9.8.172";
+
+// Use JMC to play movies (you want this if you use a Mac, because QT java
+// bindings are screwed and Apple refuses to fix them.
+Boolean useJMC = true;
+
+// Whether or not to display framerate
+Boolean displayFramerate = true;
+
 // Videos to use for movie background
 // Videos should be of a small size... 180 by 144 or something similar, otherwise framerate gets killed
 // This might not be the case with JMC video, but I'm not sure...
-// TODO: Load this list of movies from the data directory
-String[] vids = new String[]{"carnival_faces_small.avi", "carnival_motion_small.avi", "spin_lights2_small.avi",
-      "spining1_small.avi", "spin_lights3_small.avi", "lights_spin3_small.avi", "carnival2_small.avi",
-      "rollercoaster_small.avi", "spin_lights1_small.avi", "carnival_faces_small.avi",
-      "crowd_lights1_small.avi", "dancing_costume_small.avi", "lights_loop1_small.avi", "lights_loop2_small.avi", 
-    "lights_loop3_small.avi", "lights_loop4_small.avi", "lights_loop5_grid_small.avi", "lights_loop6_small.avi", 
-    "lights_loop7_small.avi", "lights_loop8_small.avi",
-    "lights_loop9_small.avi", "lights_loop10_small.avi",
-    "lights_loop11_small.avi", "machines_small.avi",
-    "plane2_multiply2.avi","plane2_multiply3.avi",
-    "plane2a.avi","plane2aaa.avi",
-    "plane3.avi","plane4.avi",
-    "plane5.avi","plane5_multiply2.avi",
-    "plane5_multiply3.avi","plane6.avi",
-    "rocket1.avi","rocket2.avi","rocket3a.avi"
-};
+String moviePrefix = "vid_";
+
+// = new String[]{"carnival_faces_small.avi", "carnival_motion_small.avi", "spin_lights2_small.avi",
+//       "spining1_small.avi", "spin_lights3_small.avi", "lights_spin3_small.avi", "carnival2_small.avi",
+//      "rollercoaster_small.avi", "spin_lights1_small.avi", "carnival_faces_small.avi",
+//      "crowd_lights1_small.avi", "dancing_costume_small.avi", "lights_loop1_small.avi", "lights_loop2_small.avi", 
+//    "lights_loop3_small.avi", "lights_loop4_small.avi", "lights_loop5_grid_small.avi", "lights_loop6_small.avi", 
+//    "lights_loop7_small.avi", "lights_loop8_small.avi", "lights_loop12.avi", "lights_loop13.avi",
+//    "lights_loop9_small.avi", "lights_loop10_small.avi",
+//    "lights_loop11_small.avi", "machines_small.avi",
+//    "plane2_multiply2.avi","plane2_multiply3.avi",
+//    "plane2a.avi","plane2aaa.avi",
+//    "plane3.avi","plane4.avi",
+//    "plane5.avi","plane5_multiply2.avi",
+//    "plane5_multiply3.avi","plane6.avi", "plane7.avi", "flying.avi",
+//    "rocket1.avi","rocket2.avi","rocket3a.avi"
+//     
+//}; 
 
 // Title movies, first is a coloured one suitable for a background, second is for overlays (black/white)
 String titles[][] = {
-  { null, null }, // "title_sos.avi"
+  { null, "title-speedofsound.avi" }, // "title_sos.avi"
   { null, "title_jetpilot.avi"},
   { null, "title_boy.avi"},
-  { "title_kellective.avi", null}, 
+  { "title_kellective.avi", "title-kellective2.avi"}, 
   { null, "title_andy.avi"},
   { null, "title_perspexx.avi"},
   { null, "title_rich.avi"},
@@ -76,18 +84,19 @@ String titles[][] = {
   { "title_pipi.avi", "title_pipi_white.avi"},
   { "title_polly.avi", "title_polly_white.avi"},
   { "title_aaron.avi", "title_aaron_white.avi"},
+  { null, "title-happyinmotion.avi"},
 };
 
 // Gifs to use for GIF background
 // TODO
 // Images to use for image backgroun
 // TODO
+
+// When Speed of Sound starts up it will list the Camera devices available.
+// You should add those you want to use to this array.
 // List of camera devices to use.
 String[] cameraNames = new String[] {
-  //"AVerMedia 716x BDA Analog Capture-WDM", // For Joel's tv card input of handycam
-  //"Logitech QuickCam Express/Go-WDM", // For Joel's cheap webcam
-  "Laptop Integrated Webcam-WDM"
-
+  "USB Video Class Camera" // MBP webcam
 };
 
 GL gl;
@@ -137,7 +146,47 @@ int presetTimer = 0; float presetChangeChance = 0.05;
 int motionTimer = 0; float motionChangeChance = 0.1;
 int backgroundTimer = 0; float backgroundChangeChance = 0.05;
 
+// Whether an accumulation buffer was detected
+Boolean accumBufferExists = true;
+
 Rorschach rorschachLayer; // An alternative to the PointArtist layer.
+
+Boolean checkAccumulationBuffer()
+{
+  int ab[] = new int[4];
+  gl.glGetIntegerv(gl.GL_ACCUM_RED_BITS,ab, 0);
+  gl.glGetIntegerv(gl.GL_ACCUM_GREEN_BITS,ab, 1);
+  gl.glGetIntegerv(gl.GL_ACCUM_BLUE_BITS,ab, 2);
+  gl.glGetIntegerv(gl.GL_ACCUM_BLUE_BITS,ab, 3);
+  print("Accumulation buffer bits: ");
+  for (int j=0; j < 4; j++) {
+      if (ab[j] == 0) accumBufferExists = false;
+      print(ab[j]); print(" ");
+  }
+  println("");
+  if (!accumBufferExists) println("Accumulation buffer not supported");
+  return accumBufferExists;
+
+}
+
+void initCameras()
+{
+  String[] devices = Capture.list();
+  println("Camera devices detected");
+  println(devices);
+  // Initialise cameras in cameraNames, but only if they were detected
+  cameras = new CamBackgroundArtist[cameraNames.length];
+  for (int i = 0; i < cameraNames.length; i++) {
+    cameras[i] = null;
+    for (int j = 0; j < devices.length; j++) {
+	if (cameraNames[i] == devices[j]) {
+	    cameras[i] = new CamBackgroundArtist(this, cameraNames[i]);
+	    j = devices.length;
+	}
+    }
+  }
+  println("Cameras initialised");
+}
 
 void setup()
 {
@@ -145,16 +194,23 @@ void setup()
   // Fullscreen
   // size(screen.width, screen.height, GLConstants.GLGRAPHICS);
   // Processing seems to force 2x smooth if it's not explicitly disabled
-  hint(DISABLE_OPENGL_2X_SMOOTH);
-  hint(ENABLE_OPENGL_4X_SMOOTH);
-  GL gl = (( PGraphicsOpenGL )g).gl;
-  gl.glEnable(GL.GL_LINE_SMOOTH);
-  frameRate(60);
+   hint(DISABLE_OPENGL_2X_SMOOTH);
+   hint(ENABLE_OPENGL_4X_SMOOTH);
+  gl = (( PGraphicsOpenGL )g).gl;
+  //gl.glEnable(GL.GL_LINE_SMOOTH);
+  checkAccumulationBuffer();
+  //gl.glReadBuffer(GL_FRONT);
+  //gl.glCopyPixels(0,0,1024,768,gl.GL_COLOR);
+  GLCapabilities c = ((GLGraphics)g).getCapabilities();
+  println(c.toString());
+
+  if (gl.isExtensionAvailable("GL_ARB_shading_language_100"))
+      println( "Found GLSL shader language");
+
+  //frameRate(60);
   //frame.setResizable(true);
-  smooth();
-  colorMode(HSB);
-  String[] devices = Capture.list();
-  println(devices);
+  //smooth();
+  //colorMode(HSB);
   
   minim = new Minim(this);
   osc = new OSCConnection(this,lemurIP,8000);
@@ -175,38 +231,34 @@ void setup()
   // createBackgroundArtist() )
 
   bgArtist = createBackgroundArtist("MovieBackgroundArtist");
-  bgArtist.init(vids);
+  bgArtist.init(moviePrefix);
   
   titleArtist = new TitleBackgroundArtist(this);
   titleArtist.init(titles);
 
-  // Initialise cameras
-  cameras = new CamBackgroundArtist[cameraNames.length];
-  for (int i = 0; i < cameras.length; i++) {
-    cameras[i] = new CamBackgroundArtist(this, cameraNames[i]);
-    //cameras[i].active = true;
-  }
+  initCameras();
   
   // Initialise point artist
   pArtist = new PointArtist();
   pMotion = new PointMotion();
 
+  oArtists = new OverlayArtist[0];
   // // WITH waveformoverlay
-  // oArtists = new OverlayArtist[2];
   // oArtists[0] = createOverlayArtist("WaveformOverlayArtist");
   // oArtists[0].init(song);
-  // oArtists[1] = createOverlayArtist("BlurOverlayArtist");
-  // oArtists[1].init(new Double(0.50));
-  // WITHOUT
-  oArtists = new OverlayArtist[1];
-  oArtists[0] = createOverlayArtist("BlurOverlayArtist");
-  oArtists[0].init(new Double(0.90));
+  if (accumBufferExists) {
+      oArtists = new OverlayArtist[1];
+      oArtists[0] = createOverlayArtist("BlurOverlayArtist");
+      oArtists[0].init(new Double(0.90));
+  }
   rorschachLayer = new Rorschach(this);
 
   // Create LemurPoint objects
   createLemurPoints(true);
   
   osc.setAll(); // Set everything to its init point
+  //cameras[0].active = true;
+  println("Finished initialisation");
 }
 
 void draw()
@@ -218,7 +270,10 @@ void draw()
   titleArtist.paint(); // Needs to do video changes in paint method
   if (!(titleArtist.playing)) {
       if (rorschachLayer.active && rorschachLayer.overlay) { // Simple switch. Use Rorschach or PointArtist
-        rorschachLayer.paint();
+	gl.glEnable(GL.GL_BLEND); // Enable blending mode
+        gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
+	rorschachLayer.paint();
+	gl.glDisable(GL.GL_BLEND); // Enable blending mode
       }
       if (pArtist.active && pArtist.overlay) {
         pArtist.paint(pointSets[currentPreset]);
@@ -232,18 +287,32 @@ void draw()
           (rorschachLayer.active && rorschachLayer.overlay) ||
           (titleArtist.playing && titleArtist.isOverlay == 1);
   if (blendTime) {
-    gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
+    gl.glEnable(GL.GL_BLEND); // Enable blending mode
     gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to masking mode
   }
-  //if (!titleArtist.playing || titleArtist.isOverlay == 1) {
-    bgArtist.paint(); // Movie rendered on white regions of screen
-  //}
 
-  for (int i = 0; i < cameras.length; i++) {
-    if (cameras[i].active) cameras[i].paint();
+  if (!titleArtist.playing || titleArtist.isOverlay == 1) {
+    bgArtist.paint(); // Movie rendered on white regions of screen
   }
   
-  if (rorschachLayer.active && !rorschachLayer.overlay) { // Simple switch. Use Rorschach or PointArtist
+  if (!titleArtist.playing) {
+   gl.glEnable(GL.GL_BLEND); // Re-enable blending mode
+   gl.glBlendFunc(GL.GL_DST_COLOR, GL.GL_ZERO); // Switch to video blending mode
+  }
+  
+  if (!titleArtist.playing || titleArtist.isOverlay == 1) {
+    for (int i = 0; i < cameras.length; i++) {
+      if (cameras[i] != null && cameras[i].active) cameras[i].paint();
+    }
+  }
+  
+  // Switch to respect alpha transparency. DEFAULT BLENDING MOE FOR ALPHA PNGS ETC
+  if (!titleArtist.playing) {
+   gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+  }
+
+  // Simple switch. Use Rorschach or PointArtist
+  if (rorschachLayer.active && !rorschachLayer.overlay) {
      rorschachLayer.paint();
   }
   if (pArtist.active && !pArtist.overlay) {
@@ -258,12 +327,13 @@ void draw()
     oArtists[i].paint();
   }
   
-  if (blendTime) {
-    gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking so framerate display is legible
+  if (displayFramerate) {
+    if (blendTime) {
+	gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking so framerate display is legible
+    }
+    // Display framerate
+    text(frameRate, width-45, height-25);
   }
-  
-  // Display framerate
-  text(frameRate, width-45, height-25);
   if (blendTime) {
     gl.glDisable(GL.GL_BLEND);
   }
@@ -285,11 +355,14 @@ void demoModeUpdate() {
          pArtist.beatSize = (int) random(40, width / 2);
          pArtist.minSize = (int) random(0, pArtist.beatSize * 3 / 4);
          //currentPreset = (int) random(pointSets.length);
-         currentPreset = (int) random(10); // other presets might not changed from boring starts
-         if (currentPreset == 9) {
+         int p = (int) random(10); // other presets might not changed from boring starts
+         if (p == 9) {
            pArtist.active = false;
+           pArtist.oscSendActive(osc.oscP5, osc.oscDestination);
          } else {
            pArtist.active = true;
+           pArtist.oscSendActive(osc.oscP5, osc.oscDestination);
+           osc.changePreset(p);
          }
          
          presetTimer = 0;
@@ -298,6 +371,7 @@ void demoModeUpdate() {
     if (motionTimer > minTimeBeforeSwitch) {
       if (random(1.0) < motionChangeChance) {
          pMotion.setMode( (int) random(5) );
+         pMotion.oscSendMode(osc.oscP5, osc.oscDestination);
          motionTimer = 0;
          if (pMotion.mode == 4) { // Gravity
            pMotion.gProportion = random(-0.5, 0.5);
@@ -306,7 +380,7 @@ void demoModeUpdate() {
     }
     if (backgroundTimer > minTimeBeforeSwitch) {
       if (random(1.0) < backgroundChangeChance) {
-         bgArtist.setCurrentSource((int) random(vids.length));
+         bgArtist.setCurrentSource((int) random(bgArtist.getNumberOfSources()));
          backgroundTimer = 0;
       }
     }
@@ -466,30 +540,3 @@ void oscEvent(OscMessage theOscMessage) {
     osc.handleMessage(theOscMessage);
 }
 
-/* // TODO: move all this into the JMC BackgroundArtist
-JMCMovieGL movieFromDataPath(String filename)
-{
-  return new JMCMovieGL(this, filename, RGB);
-}
-
-JMCMovieGL movieFromFile(String filename)
-{
-  return new JMCMovieGL(this, new File(filename), RGB);
-}
-
-JMCMovieGL movieFromURL(String urlname)
-{
-  URL url = null;
-
-  try
-  {
-    url = new URL(urlname);
-  }
-  catch(Exception e)
-  {
-    println("URL error...");
-  } 
-
-  return new JMCMovieGL(this, url, RGB);
-}
-*/

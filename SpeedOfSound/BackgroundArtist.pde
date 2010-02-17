@@ -16,6 +16,7 @@ class BackgroundArtist {
     }
 
     void setCurrentSource(int i) { }
+    int getNumberOfSources() { return 1; }
     
     void setSpeed(float s) { }
 
@@ -23,76 +24,6 @@ class BackgroundArtist {
 	// draws background
 	background(c);
     }
-}
-
-
-class MovieBackgroundArtist extends BackgroundArtist {
-    int pvw, pvh;
-    // JMC stuff should be a separate class, or subclass eventually
-    //JMCMovieGL m;
-    int beatTimer = 0;
-    Movie m;
-    // Preload all movie objects for fast switching hopefully
-    Movie movieRepository[];
-    // Index of current move
-    int vidNum = 0;
-    PApplet parent;
-    float beatJump = 0.0;
-    float speed = 1.0;
-
-    MovieBackgroundArtist(PApplet _parent) {
-      parent = _parent;
-    }
-    
-    void setCurrentSource(int i) {
-      m.stop();
-      if (i < movieRepository.length) {
-         m = movieRepository[i];        
-      } else {
-         m = movieRepository[0];
-         println("Movie index out of range");
-      }
-      m.loop();
-    }
-    
-    void setSpeed(float s) {
-      speed = s;
-      m.speed(s);
-      
-    }
-
-    void init(Object o) {
-      // Object o is a array of movie filenames
-
-      String movieFiles[] = (String[]) o;
-      println("Loading background movies...");
-      // load all movies 
-      movieRepository = new Movie[movieFiles.length];
-      for (int i = 0; i < movieFiles.length; i++) {
-         movieRepository[i] = new Movie(parent,movieFiles[i]);
-      }
-      m = movieRepository[0];
-      m.loop();
-//      m = (Movie) o;
-//      int counter = 0;
-    }
-
-    void paint() {
-      if (beatJump != 0.0 && beat.isKick()) {
-        // JMC
-        //m.setCurrentTime(sosMovie.getCurrentTime() - 0.5);
-        m.jump(m.time() + beatJump);
-      }
-      
-      // JMC:
-      // m.image(gl, 0, 0, width, height);
-      
-      // Processing Movie library:
-      //if (m.available()) m.read();
-      image(m, 0, 0, width, height);
-      if (m.time() == 0 && speed < 0.0) m.jump(m.duration());
-    }
-
 }
 
 class TitleBackgroundArtist extends BackgroundArtist {
@@ -277,7 +208,8 @@ BackgroundArtist createBackgroundArtist(String t) {
       //case ImageBgArtist:
       //      return new ImageBgArtist();
     } else if (t.equals("MovieBackgroundArtist")) {
-      return new MovieBackgroundArtist(this);
+      if (useJMC) return new JMCMovieBackgroundArtist(this);
+      else return new QTMovieBackgroundArtist(this);
     } else if (t.equals("ImageBackgroundArtist")) {
       return new ImageBackgroundArtist();
     } else {

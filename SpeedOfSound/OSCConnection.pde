@@ -10,9 +10,9 @@ class OSCConnection {
 
     OSCConnection (Object theParent, String server, int port) {
         /* create a new instance of oscP5. 
-        * 12000 is the port number you are listening for incoming osc messages.
+        * 9000 is the port number you are listening for incoming osc messages.
         */
-        oscP5 = new OscP5(theParent,12000);
+        oscP5 = new OscP5(theParent,9000);
         
         parent = theParent;
 
@@ -37,6 +37,7 @@ class OSCConnection {
       sendBGMovieBeatJump();
       sendMotionBlur();
       sendMotionBlurOn();
+      sendDemoMode();
 
       pArtist.oscSendState(oscP5, oscDestination);
       pMotion.oscSendState(oscP5, oscDestination);
@@ -67,10 +68,6 @@ class OSCConnection {
         xOscMessage.add(xs);
         yOscMessage.add(ys);
         /* send the OscMessage to a remote location */
-        //xOscMessage.print();
-        //print(Arrays.toString(xs));
-        //yOscMessage.print();
-        //print(Arrays.toString(ys));
         oscP5.send(xOscMessage, oscDestination);
         oscP5.send(yOscMessage, oscDestination);
     }
@@ -122,7 +119,7 @@ class OSCConnection {
       OscMessage cOsc = new OscMessage("/Camera/On/x");
       float[] vec = new float[cameras.length];
       for (int i = 0; i < cameras.length; i++) {
-        if (cameras[i].active) {
+        if (cameras[i] != null && cameras[i].active) {
           vec[i] = 1.0;
         }else {
           vec[i] = 0.0; 
@@ -130,6 +127,14 @@ class OSCConnection {
       }
       cOsc.add(vec);
       oscP5.send(cOsc, oscDestination);
+    }
+    
+    void sendDemoMode() {
+      OscMessage vidOsc = new OscMessage("/Demo/On");
+      float vid = 0.0;
+      if (demoMode) vid = 1.0;
+      vidOsc.add(vid);
+      oscP5.send(vidOsc, oscDestination);
     }
 
     void sendBGMovieOn() {
@@ -153,15 +158,19 @@ class OSCConnection {
     }
 
     void sendMotionBlur() {
+    if (accumBufferExists) {
       OscMessage vidOsc = new OscMessage("/Blur/x");
       vidOsc.add(((BlurOverlayArtist)oArtists[0]).n);
       oscP5.send(vidOsc, oscDestination);
     }
+    }
     
     void sendMotionBlurOn() {
+    if (accumBufferExists) {
       OscMessage vidOsc = new OscMessage("/Blur/on");
       vidOsc.add(((BlurOverlayArtist)oArtists[0]).active);
       oscP5.send(vidOsc, oscDestination);
+    }
     }
 
 
@@ -171,7 +180,8 @@ class OSCConnection {
         // println("SOS received an osc message with addrpattern "+path+" and typetag "+theOscMessage.typetag());
         String elements[] = path.split("/");
         //println("Received OSC message...");
-        //theOscMessage.print();
+        println("shiiiit");
+        theOscMessage.print();
         
         if (elements[1].equals("Points")) {
             //int pIndex = Integer.parseInt(path.substring(6,path.indexOf("/",6)));
@@ -284,6 +294,7 @@ class OSCConnection {
           ((MovieBackgroundArtist)bgArtist).beatJump = jump;
         }
         else if (elements[1].equals("Blur")) {
+	  if (accumBufferExists) {
           if (elements[2].equals("x")) {
             float blur = theOscMessage.get(0).floatValue();
             ((BlurOverlayArtist)oArtists[0]).n = blur;
@@ -296,19 +307,31 @@ class OSCConnection {
               ((BlurOverlayArtist)oArtists[0]).active = false;
             }
           }
+	  }
         } 
         else if (elements[1].equals("Camera")) {
           if (elements[2].equals("On")) {
             for (int i = 0; i < cameras.length; i++) {
               float x = theOscMessage.get(i).floatValue();
-              if (x == 1.0) {
-                cameras[i].active = true;
-              } else {
-                cameras[i].active = false;
-              }
+	      if (cameras[i] != null) {
+		  if (x == 1.0) {
+		    cameras[i].active = true;
+		  } else {
+		    cameras[i].active = false;
+		  }
+	      }
             }
             
           }
+        } else if (elements[1].equals("Demo")) {
+            float bool = theOscMessage.get(0).floatValue();
+            if (bool == 1.0) {
+              demoMode = true;
+              println("Demo mode on");
+            } else {
+              demoMode = false;
+              println("Demo mode off");              
+            }
         }
 
     }

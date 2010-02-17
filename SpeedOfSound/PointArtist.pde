@@ -128,6 +128,7 @@ class PointArtist {
           overlay = false;
           //rorschachLayer.active = true;
         }
+        oscSendOverlay(osc.oscP5, osc.oscDestination);
       }
       // TODO: add overlay amount
       else if (elements[2].equals("Image")) {
