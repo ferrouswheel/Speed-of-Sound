@@ -331,8 +331,8 @@ void draw()
     if (blendTime) {
 	gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); // Disable masking so framerate display is legible
     }
-    // Display framerate
-    text(frameRate, width-45, height-25);
+    // Display framerate - this crashes the app after a random interval, so disable it for performance.
+    // text(frameRate, width-45, height-25);
   }
   if (blendTime) {
     gl.glDisable(GL.GL_BLEND);
